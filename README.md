@@ -234,23 +234,24 @@ Fires whenever a channel gains a new subscriber. Has the following JSON structur
 	         twitch: "46984772"
 	      },
 	      username: {
-	         gamewisp: "thefr0zenheart",
-	         twitch: "thefr0zenheart"
+	         gamewisp: "user_name",
+	         twitch: "user_name_gamewisp"
 	      },
 	      status: "active",
 	      amount: "3.99",
 	      subscribed_at: "2015-12-30 00:00:00",
 	      end_of_access: "2016-01-30 23:59:00",
 	      tier: {
-	         id: "6969",
-	         title: "Bronze Support",
+	         id: "111111",
+	         title: "Tier Title",
 	         level: "1",
 	         cost: "3.99",
-	         description: "Want to support the stream monthly This is Bronze tier",
+	         description: "Tier description",
 	         published: true
 	      }
 	   }
     }
+
 
 
 * **status**: string. The subscriber's current status. Can be any of the following: 
