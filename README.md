@@ -1,5 +1,9 @@
+
+
 # GameWisp-Singularity-Examples
 A public repository of code examples that leverage the GameWisp Singularity API. Singularity Documentation is also included.
+
+**This documentation is very work in progress, and may be incomplete, incorrect, or victim to numerous typos. Bear with us -- this documentation is still a rough draft.**
 
 ## Quick Start
 
@@ -23,7 +27,7 @@ Singularity can be accessed by both client and server side applications. A minim
 	                secret: "<developer secret issued to you by GameWisp>"
 	            }
 	            
-	            var socket = io('http://singularity.gamewisp.com:8000');
+	            var socket = io('https://singularity.gamewisp.com');
 	            
 	            socket.on('connect', function(){
     
@@ -111,7 +115,7 @@ In order to access data for any GameWisp channel, your application must be autho
 
 Channel credentials are used to validate any event your application may emit to the Singularity API. To ensure secure transmission of channel credentials, they are currently required to be submitted using AES-256 bit encryption. In practice, performing encryption and passing the required information is fairly straightforward. Using CryptoJS, for example, on a server application using NodeJS, would perform channel authorization as follows:
 
-    var socketClient = require("socket.io-client")('http://singularity.gamewisp.com:8000');
+    var socketClient = require('socket.io-client')('https://singularity.gamewisp.com');
     var crypto = require('crypto-js');
     
     
@@ -214,7 +218,7 @@ Using Socket.IO, this event can be listened to as follows:
         //Do something
     });
 
-This event fires whenever a channel gains a new subscriber. Has the following JSON structure:
+This event fires whenever a channel gains a new subscriber and has the following JSON structure:
 
      {
 	   event: "subscriber-new",
@@ -258,11 +262,32 @@ This event fires whenever a channel gains a new subscriber. Has the following JS
 
 This event fires as soon as a subscriber has newly subscribed to a channel. It is always immediately followed by the ```subscriber-benefits-change``` event.
 
+
+### subscriber-renewed
+
+Using Socket.IO, this event can be listened to as follows:
+
+    socket.on('subscriber-renewed', function(data){
+        //Do something
+    });
+
+This event sends identical data to the ```subscriber-new``` event but is included as its own unique event for convenience. The ```subscriber-renewed``` event fires whenever a subscriber is successfully billed for another month on GameWisp.
+
+It is important to keep in mind that GameWisp processes renewals each day for all the channels that are flagged for renewal on that day at approximately 12:00PM CST. Therefore, if your application supports multiple GameWisp channels, it is not uncommon to receive multiple ```subscriber-renewed``` events in succession for channels as they are renewed.
+
 #### subscriber-benefits-change
 
-This is arguably the most important event for an application attempting to provide benefit fulfillment of some sort for GameWisp subscribers. As such, the event and its response are described in detail here. It is well worth familiarizing yourself with this section of the documentation in particular if you're looking to write an application that leverages singularity for benefit fulfillment (e.g., managing giveaways, channel currency, access to servers, Discord, etc.) 
+This is arguably the most important event for an application attempting to provide benefit fulfillment of some sort for GameWisp subscribers. As such, the event and its response are described in detail here. 
 
-This event fires whenever a subscriber's benefits change. A benefit change can be triggered by a user subscribing to a new channel, upgrading their subscription to a channel, or downgrading their subscription to a channel. Has the following JSON structure:
+It is well worth familiarizing yourself with this section of the documentation in particular if you're looking to write an application that leverages singularity for benefit fulfillment (e.g., managing giveaways, channel currency, access to servers, Discord, etc.) 
+
+Using Socket.IO, this event can be listened to as follows:
+
+    socket.on('subscriber-benefits-change', function(data){
+        //Do something
+    });
+
+This event fires whenever a subscriber's benefits change. A benefit change can be triggered by a user subscribing to a new channel, upgrading their subscription to a channel, or downgrading their subscription to a channel. This event can also fire if the channel makes changes to a tier that contains active subscribers. In this case, a ```subscriber-benefits-change``` event will fire for each subscriber currently in the modified tier. This event has the following JSON structure:
 
     {
 	   event: "subscriber-benefits-change",
@@ -307,12 +332,12 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 	         //...
 	      ],
 	      ids: {
-	         gamewisp: "23029",
-	         twitch: "107539096"
+	         gamewisp: "111111",
+	         twitch: "121212121212"
 	      },
 	      username: {
-	         gamewisp: "grietje1",
-	         twitch: "grietje1"
+	         gamewisp: "gamewisp_username",
+	         twitch: "twitch_username"
 	      },
 	      status: "active",
 	      amount: "3.99",
@@ -329,16 +354,16 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 	   }
 	}
  
- The ```benefits``` array contains an array of benefit-fulfillment pairs. The benefit object in the pair describes a single benefit for the subscriber. The fulfillment obejct in the pair provides information about whether or not the benefit has been fulfilled.
+ The ```benefits``` array contains an array of benefit-fulfillment pairs. The benefit object in the pair describes a single benefit for the subscriber. The fulfillment object in the pair provides information about whether or not the benefit has been fulfilled.
 
  The benefit object:
 
- * **id**: The unique identifier for the benefit.
+ * **id**: The identifier for the benefit. Note that the "Premium Videos", "Early Access Videos", and "Subscriber Messaging" benefits will have the same identifier (1, 2, and 3 respectively) across GameWisp channels.
  * **delivery**: The delivery type of the benefit. This describes how the benefit is delivered by GameWisp.
 
  The delivery types are: 
  - ```delivery-messaging``` - Unique to the Subscriber Messaging benefit, indicates that the benefit allows the subscriber to access messaging features for the channel. 
- - ```delivery-video``` - Unique to the Early Access and Premium Video benefits. Indicates that the user can view early access and/or premium videos for the channel on GameWisp.
+ - ```delivery-video``` - Unique to the Early Access and Exclusive Video benefits. Indicates that the user can view early access and/or premium videos for the channel on GameWisp.
  - ```delivery-automatic``` - Indicates that the benefit's data is automatically sent to the subscriber upon subscription.
  - ```delivery-personal``` - Indicates that the channel must do something specific to this subscriber in order to fulfill the benefit. For example, providing channel currency. This is likely the benefit delivery type of most importance for bots and other applications that generally want to automate some action for a specific user.
  - ```delivery-personal-input``` - Indicates that the channel must do something specific to this subscriber, but some input is required by the subscriber. This input is collected on GameWisp, typically after this event has been sent.
@@ -360,6 +385,8 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
  - ```subscriber-art``` - Access to art delivered by the channel. 
  - ```subscriber-music``` - Access to music delivered by the channel.
  - ```giftcards``` - Giftcards for Steam, Origin, etc.
+ - ```videos-exclusive``` - Access to videos hosted only on GameWisp.
+ - ```videos-early``` - Access to videos hosted on GameWisp in their early access period.
  - ```custom``` - A benefit created custom by the channel. 
  - ```unknown-type``` - Error condition. The benefit type isn't recognized by Singularity.
 
@@ -374,75 +401,215 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 
 The fulfillment object represents how the benefit is fulfilled by the channel. It is described as follows:
 
-
- // Fires whenever a channel to which you're listening gains a new subscriber.
-                        socket.on('subscriber-new', function(data, callback){
-                            prettyPrint($('#messages'), 'subscriber-new', data);
-                        });
-
-                        //Fires when a subscriber is successfully renewed for another month.
-                        socket.on('subscriber-renewed', function(data, callback){
-                            prettyPrint($('#messages'), 'subscriber-renewed', data);
-                        });
-
-                        // Fires whenever a subscriber to channel to which you're listening changes status. Active to inactive, etc.
-                        // This will not fire on new subscribers, only changes to existing subscribers. See above.
-                        socket.on('subscriber-status-change', function(data, callback){
-                            prettyPrint($('#messages'), 'subscriber-status-change', data);
-                        });
-
-                        // Fires whenever the benefits for a subscriber to a channel on which you're listening changes.
-                        // This is typically the result of a subscriber upgrading or downgrading their subscription, or
-                        // the channel altering the benefits to a tier with subscribers in it as this causes the benefits assigned
-                        // to subscribers to change.
-                        socket.on('subscriber-benefits-change', function(data, callback){
-                            prettyPrint($('#messages'), 'subscriber-benefits-change', data);
-                        });
-
-                        // Fires whenever the channel fulfills a benefit for a subscriber.
-                        socket.on('benefit-fulfilled', function(data, callback){
-                            prettyPrint($('#messages'), 'benefit-fulfilled', data);
-                        });
-
-                        // Fires when a user dismisses a benefit they do not want.
-                        socket.on('benefit-dismissed-user', function(data, callback){
-                            prettyPrint($('#messages'), 'benefit-dismissed-user', data);
-                        });
-
-                        // Fires when a channel dismisses a benefit for a user.
-                        socket.on('benefit-dismissed-channel', function(data, callback){
-                            prettyPrint($('#messages'), 'benefit-dismissed-channel', data);
-                        });
-                        
-                        // Fires when a channel publishes a tier. This may not necessarily be a new tier, it may be a tier that was
-                        // previously published, unpublished, and then published again by the channel.
-                        socket.on('tier-published', function(data, callback){
-                            prettyPrint($('#messages'), 'tier-published', data);
-                        });
-                        
-                        // Same as tier-published except occurs when a channel unpublishes a tier.
-                        socket.on('tier-unpublished', function(data, callback){
-                            prettyPrint($('#messages'), 'tier-unpublished', data);
-                        });
-                        
-
-                        // Fires whenever a channel modifies a tier's title, description, or cost.
-                        socket.on('tier-modified', function(data, callback){
-                            prettyPrint($('#messages'), 'tier-modified', data);
-                        });
-                        
-                        // fires when a channel adds a benefit to a tier, can fire in multiple succession if a 
-                        // channel adds multiple benefits to a tier before saving that tier.
-                        socket.on('tier-benefit-added', function(data, callback){
-                            prettyPrint($('#messages'), 'tier-benefit-added', data);
-                        });
-                        
-                        // same as tier-benefit-removed except for benefit removal.
-                        socket.on('tier-benefit-removed', function(data, callback){
-                            prettyPrint($('#messages'), 'tier-benefit-removed', data);
-                        });
+    fulfillment: {
+	               id: "54350",
+	               benefit_id: "3",
+	               tier_id: "8781",
+	               channel_fulfillment_response: null,
+	               fulfilled_at: "2015-12-30 21:29:07",
+	               previously_fulfilled_at: null,
+	               disabled_at: null,
+	               user_input_provided_at: null,
+	               recurring: true,
+	               granted_at: "2015-12-30 21:29:07.000000",
+	               channel_cancelled_at: null,
+	               status: "active"
+	            }
 
 
+* **id**: The unique identifier for the fulfillment object.
+* **benefit_id**: The benefit identifier to which the fulfillment object belongs. In other words, a fulfillment object with ```benefit_id = 5``` was used to fulfill the benefit with ```id = 5``` for that particular channel.  
+* **tier_id**: The unique identifier of the tier to which the fulfilled benefit belongs.
+* **channel_fulfillment_response**: string. If the channel provided a response when fulfilling the benefit, it is provided here.
+* **fulfilled_at**: datetime. A timestamp indicating when the benefit was fulfilled. Null if the benefit has not yet been fulfilled.
+* **previously_fulfilled_at**: datetime. The date this benefit was last fulfilled by the channel. This is only non-null if the benefit is recurring and has been fulfilled previously. 
+* **recurring**: boolean. True if the fulfillment object is for a recurring benefit, false otherwise.
+* **granted_at**: datetime. The time that the benefit was awarded to the subscriber.
+* **channel_cancelled_at**: datetime. The time that the channel cancelled this benefit for the subscriber. Only non-null if the benefit has been cancelled.
+* **status**: The status of the fulfillment for the subscriber. Statuses are as follows:
+ - ```active``` - The benefit fulfillment is currently active for the subscriber.
+ - ```inactive``` - The benefit fulfillment is inactive and the subscriber should no longer receive it. 
+ - ```delayed``` - The subscriber has the benefit, but its fulfillment is currently delayed. This occurs most often with recurring / delayed benefits.
+ - ```dismissed-channel``` - The channel has dismissed this benefit for this subscriber.
+ - ```dismissed-channel-email``` - The channel has dismissed this benefit for this subscriber and notified the subscriber of doing so via email.
+ - ```dismissed-subscriber``` - The subscriber dismissed the benefit. This usually occurs when the subscriber does not want a benefit being offered by the channel.
+ - ```cancelled-action-required``` - The benefit has been cancelled and the channel needs to take some action manually as a result. This action usually entails removing subscribers from third party services (e.g., game server whitelists, giveaway lists, etc.).
+ - ```unknown-status``` - Error condition. Used when Singualrity does not know the status of a fulfillment object.
+
+
+Additionally, this event contains information pertaining to the subscriber, their payment amount, etc. that can also be found in the ```subscriber-new``` event documentation.
+
+#### subscriber-status-change
+
+Using Socket.IO, this event can be listened to as follows:
+
+    socket.on('subscriber-benefits-change', function(data){
+        //Do something
+    });
+
+This event fires whenever the status of a subscriber changes. This change can be the result of a subscriber cancelling, a subscriber's recurring payment failing, etc. The event response has the following JSON structure:\
+
+    {
+	   event: "subscriber-status-change",
+	   id: "channel identifier",
+	   data: {
+	      ids: {
+	         gamewisp: "123222",
+	         twitch: "95512221241604"
+	      },
+	      username: {
+	         gamewisp: "gamewisp_username",
+	         twitch: "twitch_username"
+	      },
+	      status: "trial",
+	      amount: "2.99",
+	      subscribed_at: "2015-12-31 18:44:07",
+	      end_of_access: "2016-01-30 18:44:07",
+	      tier: {
+	         id: "123",
+	         title: "Tier Title",
+	         level: "1",
+	         cost: "2.99",
+	         description: "Tier description.",
+	         published: true
+	      }
+    	}	
+    }
+
+The response is similar to the ```subscriber-new``` event, but the ```status``` field will contain the newly updated subscriber status. This event is not necessarily followed by a ```subscriber-benefits-change``` event.
+
+#### benefit-fulfilled
+
+Using Socket.IO this benefit can be listened to as follows:
+
+    socket.on('benefit-fulfilled', function(data){
+    	//Do something.                        
+    });
+
+This event fires when a channel fulfills a benefit. The structure of the response is similar to the ```subscriber-status-change``` except that the benefits array only contains the benefit-fulfillment pair of the filled benefit.
+
+This event only fires for benefits that the channel fulfills manually through the GameWisp channel dashboard. 
+
+#### benefit-dismissed-user
+
+***Note: This event is currently not implemented, but should be very soon.***
+Using Socket.IO this benefit can be listened to as follows:
+
+    socket.on('benefit-dismissed-user', function(data){
+    	//Do stuff.
+    });
+
+This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the ```benefit-fulfilled``` event.
+
+#### benefit-dismissed-channel
+
+***Note: This event is currently not implemented, but should be very soon.***
+Using Socket.IO this benefit can be listened to as follows:
+
+    socket.on('benefit-dismissed-channel', function(data){
+    	//Do stuff.
+    });
+
+This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the ```benefit-fulfilled``` event.
+
+#### tier-published
+
+Using Socket.IO this benefit can be listened to as follows:
+
+    socket.on('tier-published', function(data){
+    	//Do stuff.
+    });
+
+The tier published event is fired whenever a channel publishes a subscriber tier. The tier may be new, or it may a tier that was unpublished and then published again by the channel. The JSON structure of the event is as follows:
+
+    {
+	   event: "tier-published",
+	   id: "channel-id",
+	   data: {
+	      id: "12345",
+	      title: "Tier Title",
+	      level: "1",
+	      cost: "4.00",
+	      description: "Tier description.",
+	      published: true,
+	      subscribers: 0,
+	      benefits: [
+	         {
+	            id: "3",
+	            delivery: "delivery-messaging",
+	            title: "Subscriber Messaging",
+	            description: "Receive Subscriber-only messages from me.",
+	            channel_data: null,
+	            type: "unknown-type",
+	            month_delay: null,
+	            recurring: false,
+	            recurring_input: false,
+	            receieve_immediately: false,
+	            removed_at: null,
+	            subscriber_limit: null,
+	            tier_bonus: false
+	         },
+	         //...
+	      ]
+	   }
+	}
+
+
+The ```tier-published``` event contains the following ```data``` fields:
+
+* **id**: The unique identifier of the tier.
+* **title**: The title of the tier.
+* **level**: The level of the tier. Minimum: 1, Maximum:6. This value is null for Twitch tiers.
+* **cost**: The cost of the tier.
+* **description**: The text description of the tier.
+* **published**: The published state of the tier.
+* **subscribers**: The count of subscribers currently in the tier.
+* **benefits**: an array of benefits contained in the tier. 
+
+Published tiers can be seen on a channel's GameWisp page. Subscribers can only be granted benefits from published tiers. However, if a subscriber is gaining benefits for a tier that a channel sets to unpublished, the subscriber still has access to those benefits since they were in a published tier at the time of subscription. Recurring benefits from an unpublished tier will not recur.
+
+#### tier-unpublished
+
+Using Socket.IO this benefit can be listened to as follows:
+
+    socket.on('tier-unpublished', function(data){
+    	//Do stuff.
+    });
+
+The analogue of the ```tier-published``` event. Fires when a channel unpublishes a tier. The response object is identical to ```tier-published```.
+
+#### tier-modified
+
+Using Socket.IO this benefit can be listened to as follows:
+
+    socket.on('tier-modified', function(data){
+    	//Do stuff.
+    });
+
+
+This event fires whenever a channel modifies their tiers. Due to the complexity of tier creation and editing (e.g., modifying one tier can potentially have an impact on others), the full list of tiers the channel has is returned in the ```tier-modified``` response. Depending on the number of tiers and benefits a channel has available, this response can be quite large.
+
+	{
+	   event: "tier-modified",
+	   id: "channel identifier",
+	   data: [
+	      {
+	         id: "12334",
+	         title: "Tier Title",
+	         level: "1",
+	         cost: "3.99",
+	         description: "Tier description.",
+	         published: true,
+	         benefits: [
+	         	//array of benefit objects for this tier.
+	         ]
+	         subscribers: 0
+	      },
+	      //...
+	   ]
+	}
 
 
 ### On-Demand Events
+
+More Documentation coming soon!
