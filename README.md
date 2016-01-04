@@ -891,3 +891,5 @@ Note that if subscriberCount and subscriberInfo are false, the 'subscriber_count
 ## Questions, Comments, Etc.
 
 This API is an actively developed work in progress, and is considered beta software. If you have any recommendations, suggestions, or issues, feel free to file a GitHub issue on this repository, or email us at help [at] gamewisp [dot] com.
+
+If you would like to include a working example of your own to this project, please submit a pull request. We're particularly interested in simple examples that leverage different programming languages and libraries than JavaScript and Socket.IO. 
