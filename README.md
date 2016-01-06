@@ -379,21 +379,17 @@ benefit: {
 
  * **id**: The identifier for the benefit. Note that the "Premium Videos", "Early Access Videos", and "Subscriber Messaging" benefits will have the same identifier (1, 2, and 3 respectively) across GameWisp channels.
  * **delivery**: The delivery type of the benefit. This describes how the benefit is delivered by GameWisp.
-
- The delivery types are: 
- - ```delivery-messaging``` - Unique to the Subscriber Messaging benefit, indicates that the benefit allows the subscriber to access messaging features for the channel. 
- - ```delivery-video``` - Unique to the Early Access and Exclusive Video benefits. Indicates that the user can view early access and/or premium videos for the channel on GameWisp.
- - ```delivery-automatic``` - Indicates that the benefit's data is automatically sent to the subscriber upon subscription.
- - ```delivery-personal``` - Indicates that the channel must do something specific to this subscriber in order to fulfill the benefit. For example, providing channel currency. This is likely the benefit delivery type of most importance for bots and other applications that generally want to automate some action for a specific user.
- - ```delivery-personal-input``` - Indicates that the channel must do something specific to this subscriber, but some input is required by the subscriber. This input is collected on GameWisp, typically after this event has been sent.
- - ```delivery-none``` - Nothing is required to be sent to a subscriber, but something is required to be performed by the channel. Examples include giveaways and playing games with subscribers.
- - ```delivery-unknown``` - Error condition. The delivery type isn't recognized by Singularity.
+  - ```delivery-messaging``` - Unique to the Subscriber Messaging benefit, indicates that the benefit allows the subscriber to access messaging features for the channel. 
+  - ```delivery-video``` - Unique to the Early Access and Exclusive Video benefits. Indicates that the user can view early access and/or premium videos for the channel on GameWisp.
+  - ```delivery-automatic``` - Indicates that the benefit's data is automatically sent to the subscriber upon subscription.
+  - ```delivery-personal``` - Indicates that the channel must do something specific to this subscriber in order to fulfill the benefit. For example, providing channel currency. This is likely the benefit delivery type of most importance for bots and other applications that generally want to automate some action for a specific user.
+  - ```delivery-personal-input``` - Indicates that the channel must do something specific to this subscriber, but some input is required by the subscriber. This input is collected on GameWisp, typically after this event has been sent.
+  - ```delivery-none``` - Nothing is required to be sent to a subscriber, but something is required to be performed by the channel. Examples include giveaways and playing games with subscribers.
+  - ```delivery-unknown``` - Error condition. The delivery type isn't recognized by Singularity.
 
 * **title**: The title of the benefit.
 * **description**: The description of the benefit.
 * **type**: The type of the benefit. 
-
- Benefit types are as follows:
  - ```currency-more``` - More channel currency to the subscriber.
  - ```currency-multiplier``` - Multiplier for the amount of currency earned.
  - ```access-server``` - Server credentials for games, etc.
