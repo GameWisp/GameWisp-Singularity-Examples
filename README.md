@@ -586,7 +586,12 @@ This event fires whenever a channel modifies their tiers. Due to the complexity 
 
 ## On-Demand Events
 
-On-demand events are simply event listeners on the API that respond to events fired by your application. All on-demand events require the following structure using Socket.IO:
+On-demand events are simply event listeners on the API that respond to events fired by your application. 
+
+On-demand events are the correct approach when you need to query the API directly for information. For example, if you need to determine whether or not a user in a Twitch chat room is a GameWisp subsciber, you would use the [channels-subscribers](#the-singularity-api-on-demand-events-channels-subscribers) on-demand event. 
+
+
+All on-demand events require the following structure using Socket.IO:
 
     socket.emit('event-name', {
     	key: 'your developer key',
@@ -611,7 +616,7 @@ This event is used to request channels for which your application wants data. Th
 
 ```identifier``` and ```key``` are provided to your application by users.
 
-This event emits ```app-channels-listened``` back to your application. See the [Successful Authorization](s#the-singularity-api-authorization-and-authentication-successful-authorization) section of this README for more discussion about channel authorization.
+This event emits ```app-channels-listened``` back to your application. See the [Successful Authorization](#the-singularity-api-authorization-and-authentication-successful-authorization) section of this README for more discussion about channel authorization.
 
 ### channels-unlisten
 
