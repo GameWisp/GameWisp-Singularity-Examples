@@ -16,58 +16,58 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 Singularity can be accessed by both client and server side applications. This minimal example was taken from the [SocketIO-client-app](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) example. 
 
 ```html    
-    <!doctype html>
-	<html>
-	    <head>
-	        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-       	        
-	        <script>
-	            
-	            // Don't expose your secret! 
-	            var devCredentials = {
-	                key: '<channel key>',
-	                secret: '<channel secret>''
-	            }
-	            
-	            var socket = io('https://singularity.gamewisp.com');
-	            
-	            socket.on('connect', function(){
-    
-	                socket.emit('authentication', 
-	                    {
-	                        key: key, 
-	                        secret: secret,
-	                    }
-	                );
-	            
-	                socket.on('authenticated', function(data) {
-	                    var channels = [
-	                        {   
-	                            identifier: '<channel key>',
-	                            key: '<channel secret>'
-	                        }
-	                    ];
-	               
-	                    // Emit 'channels-listen' event to authorize access to channels.
-	                    socket.emit('channels-listen', {
-	                        key: devCredentials.key,
-	                        data: channels
-	                    });
-    
-	                    socket.on('app-channels-listened', function(response){
-	                        //...                    
-	                    });
-    
-	                    socket.on('event-of-interest', function(response){
-	                        //...
-	                    });
-	                });
-	            });
-	        </script>
-	    </head>
-	    <body>
-	    </body>
-	</html>
+<!doctype html>
+<html>
+    <head>
+        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+   	        
+        <script>
+            
+            // Don't expose your secret! 
+            var devCredentials = {
+                key: '<channel key>',
+                secret: '<channel secret>''
+            }
+            
+            var socket = io('https://singularity.gamewisp.com');
+            
+            socket.on('connect', function(){
+
+                socket.emit('authentication', 
+                    {
+                        key: key, 
+                        secret: secret,
+                    }
+                );
+            
+                socket.on('authenticated', function(data) {
+                    var channels = [
+                        {   
+                            identifier: '<channel key>',
+                            key: '<channel secret>'
+                        }
+                    ];
+               
+                    // Emit 'channels-listen' event to authorize access to channels.
+                    socket.emit('channels-listen', {
+                        key: devCredentials.key,
+                        data: channels
+                    });
+
+                    socket.on('app-channels-listened', function(response){
+                        //...                    
+                    });
+
+                    socket.on('event-of-interest', function(response){
+                        //...
+                    });
+                });
+            });
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
 ```
 
 
