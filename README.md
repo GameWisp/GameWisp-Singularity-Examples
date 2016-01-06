@@ -15,6 +15,7 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 
 Singularity can be accessed by both client and server side applications. This minimal example was taken from the [SocketIO-client-app](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) example. 
 
+```html    
     <!doctype html>
 	<html>
 	    <head>
@@ -67,7 +68,7 @@ Singularity can be accessed by both client and server side applications. This mi
 	    <body>
 	    </body>
 	</html>
-
+```
 
 
 ## Authorization and Authentication
