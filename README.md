@@ -15,7 +15,7 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 
 *NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
 
-Singularity can be accessed by both client and server side applications. This minimal example was taken from the **SocketIO-client-app** example. If you prefer a more fully fleshed out example, check out that example in this repository found in the ```examples``` folder.
+Singularity can be accessed by both client and server side applications. This minimal example was taken from the **SocketIO-client-app** example. If you prefer a more fully fleshed out example, check out that example in this repository found in the [examples](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) folder.
 
     <!doctype html>
 	<html>
@@ -111,7 +111,7 @@ The contents of the ```response``` object on a successful authentication is a JS
 In order to access data for any GameWisp channel, your application must be authorized by that channel. Channel Authorization also currently uses channel identifiers and keys. If you're an application developer, these credentials will be supplied to you by your users. Store and use these credentials with the same care that you would store and use passwords or other sensitive information from your users.
 
 ### Successful Authorization
-Upon verifying the channels' authorization credentials, Singularity will emit the ```app-channels-listened``` event to your application, which you can listen for as follows:
+Upon verifying the channels' authorization credentials, Singularity will emit the [app-channels-listened](#the-singularity-api-authorization-and-authentication-successful-authorization) event to your application, which you can listen for as follows:
 
      socketClient.on('app-channels-listened', function(response){
           console.log('app-channels-listened: ' + response);                            
@@ -140,10 +140,10 @@ The response is a JSON object of the form:
 	   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
 	}
 
-```result``` contains the overall status of the call. A status of 1 indicates success, 0 indicates failure.  ```data``` contains an array of objects, one per channel identifier-key pair in ```channels-listen```. The contents of this object are as follows:
+```result``` contains the overall status of the call. A status of 1 indicates success, 0 indicates failure.  ```data``` contains an array of objects, one per channel identifier-key pair in [channels-listen](#the-singularity-api-on-demand-events-channels-listen). The contents of this object are as follows:
 
 * **id**: string. The channel's identifying key.
-* **status**: string. The status of the authorization attempt. "authenticated" for a successful authorization, "invalid" if there is a problem with the key-identifier pair you passed in for that channel in ```channels-listen```.
+* **status**: string. The status of the authorization attempt. "authenticated" for a successful authorization, "invalid" if there is a problem with the key-identifier pair you passed in for that channel in [channels-listen](#the-singularity-api-on-demand-events-channels-listen).
 * **listening**: boolean. Indicates that you will receive real time data for the channel as it occurs. 
 
 If you receive a ```listening: true``` for a channel, you will receive data for that channel from singularity. 
@@ -228,7 +228,7 @@ This event fires whenever a channel gains a new subscriber and has the following
 * **tier**: Basic information about the tier to which the subscriber has subscribed. Does not contain individual benefits.
 
 
-This event fires as soon as a subscriber has newly subscribed to a channel. It is always immediately followed by the ```subscriber-benefits-change``` event.
+This event fires as soon as a subscriber has newly subscribed to a channel. It is always immediately followed by the [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) event.
 
 
 ### subscriber-renewed
@@ -239,9 +239,9 @@ Using Socket.IO, this event can be listened to as follows:
         //Do something
     });
 
-This event sends identical data to the ```subscriber-new``` event but is included as its own unique event for convenience. The ```subscriber-renewed``` event fires whenever a subscriber is successfully billed for another month on GameWisp.
+This event sends identical data to the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event but is included as its own unique event for convenience. The [subscriber-renewed](#the-singularity-api-real-time-events-subscriber-renewed) event fires whenever a subscriber is successfully billed for another month on GameWisp.
 
-It is important to keep in mind that GameWisp processes renewals each day for all the channels that are flagged for renewal on that day at approximately 12:00PM CST. Therefore, if your application supports multiple GameWisp channels, it is not uncommon to receive multiple ```subscriber-renewed``` events in succession for channels as they are renewed.
+It is important to keep in mind that GameWisp processes renewals each day for all the channels that are flagged for renewal on that day at approximately 12:00PM CST. Therefore, if your application supports multiple GameWisp channels, it is not uncommon to receive multiple [subscriber-renewed](#the-singularity-api-real-time-events-subscriber-renewed) events in succession for channels as they are renewed.
 
 ### subscriber-benefits-change
 
@@ -255,7 +255,7 @@ Using Socket.IO, this event can be listened to as follows:
         //Do something
     });
 
-This event fires whenever a subscriber's benefits change. A benefit change can be triggered by a user subscribing to a new channel, upgrading their subscription to a channel, or downgrading their subscription to a channel. This event can also fire if the channel makes changes to a tier that contains active subscribers. In this case, a ```subscriber-benefits-change``` event will fire for each subscriber currently in the modified tier. This event has the following JSON structure:
+This event fires whenever a subscriber's benefits change. A benefit change can be triggered by a user subscribing to a new channel, upgrading their subscription to a channel, or downgrading their subscription to a channel. This event can also fire if the channel makes changes to a tier that contains active subscribers. In this case, a [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) event will fire for each subscriber currently in the modified tier. This event has the following JSON structure:
 
     {
 	   event: "subscriber-benefits-change",
@@ -448,7 +448,7 @@ This event fires whenever the status of a subscriber changes. This change can be
     	}	
     }
 
-The response is similar to the ```subscriber-new``` event, but the ```status``` field will contain the newly updated subscriber status. This event is not necessarily followed by a ```subscriber-benefits-change``` event.
+The response is similar to the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event, but the ```status``` field will contain the newly updated subscriber status. This event is not necessarily followed by a [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) event.
 
 ### benefit-fulfilled
 
@@ -458,7 +458,7 @@ Using Socket.IO this benefit can be listened to as follows:
     	//Do something.                        
     });
 
-This event fires when a channel fulfills a benefit. The structure of the response is similar to the ```subscriber-status-change``` except that the benefits array only contains the benefit-fulfillment pair of the filled benefit.
+This event fires when a channel fulfills a benefit. The structure of the response is similar to the [subscriber-status-change](#the-singularity-api-real-time-events-subscriber-status-change) except that the benefits array only contains the benefit-fulfillment pair of the filled benefit.
 
 This event only fires for benefits that the channel fulfills manually through the GameWisp channel dashboard. 
 
@@ -471,7 +471,7 @@ Using Socket.IO this benefit can be listened to as follows:
     	//Do stuff.
     });
 
-This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the ```benefit-fulfilled``` event.
+This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the [benefit-fulfilled](#the-singularity-api-real-time-events-benefit-fulfilled) event.
 
 ### benefit-dismissed-channel
 
@@ -482,7 +482,7 @@ Using Socket.IO this benefit can be listened to as follows:
     	//Do stuff.
     });
 
-This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the ```benefit-fulfilled``` event.
+This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the [benefit-fulfilled](#the-singularity-api-real-time-events-benefit-fulfilled) event.
 
 ### tier-published
 
@@ -529,7 +529,7 @@ The tier published event is fired whenever a channel publishes a subscriber tier
 	}
 
 
-The ```tier-published``` event contains the following ```data``` fields:
+The [tier-published](#the-singularity-api-real-time-events-tier-published) event contains the following ```data``` fields:
 
 * **id**: The unique identifier of the tier.
 * **title**: The title of the tier.
@@ -550,7 +550,7 @@ Using Socket.IO this benefit can be listened to as follows:
     	//Do stuff.
     });
 
-The analogue of the ```tier-published``` event. Fires when a channel unpublishes a tier. The response object is identical to ```tier-published```.
+The analogue of the [tier-published](#the-singularity-api-real-time-events-tier-unpublished) event. Fires when a channel unpublishes a tier. The response object is identical to [tier-published](#the-singularity-api-real-time-events-tier-unpublished).
 
 ### tier-modified
 
@@ -561,7 +561,7 @@ Using Socket.IO this benefit can be listened to as follows:
     });
 
 
-This event fires whenever a channel modifies their tiers. Due to the complexity of tier creation and editing (e.g., modifying one tier can potentially have an impact on others), the full list of tiers the channel has is returned in the ```tier-modified``` response. Depending on the number of tiers and benefits a channel has available, this response can be quite large.
+This event fires whenever a channel modifies their tiers. Due to the complexity of tier creation and editing (e.g., modifying one tier can potentially have an impact on others), the full list of tiers the channel has is returned in the [tier-modified](#the-singularity-api-real-time-events-tier-modified) response. Depending on the number of tiers and benefits a channel has available, this response can be quite large.
 
 	{
 	   event: "tier-modified",
@@ -611,7 +611,7 @@ This event is used to request channels for which your application wants data. Th
 
 ```identifier``` and ```key``` are provided to your application by users.
 
-This event emits ```app-channels-listened``` back to your application. See the **Successful Authorization*** section of this README for more discussion about ```app-channels-listened``` and channel authorization in general.
+This event emits ```app-channels-listened``` back to your application. See the [Successful Authorization](s#the-singularity-api-authorization-and-authentication-successful-authorization) section of this README for more discussion about channel authorization.
 
 ### channels-unlisten
 
