@@ -3,13 +3,16 @@
 # GameWisp-Singularity-Examples
 A public repository of code examples that leverage the GameWisp Singularity API. Singularity Documentation is also included.
 
+
+A more visually appealing form of these docs can be accessed at: https://singularity.gamewisp.com/docs
+
 **This documentation is very work in progress, and may be incomplete, incorrect, or victim to numerous typos. Bear with us -- this documentation is still a rough draft.**
 
 ## Quick Start
 
 *NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
 
-Singularity can be accessed by both client and server side applications. A minimal working client example is as follows:
+Singularity can be accessed by both client and server side applications. This minimal example was taken from the **SocketIO-client-app** example. If you prefer a more fully fleshed out example, check out that example in this repository found in the ```examples``` folder.
 
     <!doctype html>
 	<html>
@@ -64,7 +67,7 @@ Singularity can be accessed by both client and server side applications. A minim
 	    </body>
 	</html>
 
-This minimal example was taken from the **SocketIO-client-app** example. If you prefer a more fully fleshed out example, check out that example in this repository found in the ```examples``` folder.
+
 
 ## The API
 
