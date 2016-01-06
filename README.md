@@ -1,8 +1,6 @@
 
 
 # The Singularity API
-A public repository of code examples that leverage the GameWisp Singularity API. Singularity Documentation is also included.
-
 The Singularity API is real-time API that is meant to be interacted with using WebSockets. Clients connect to the API and listen to specific events of interest and receive data from the API in real-time. Unlike a conventional REST API, **there is no need to repeatedly poll or request on specific endpoints**. So don't do it. This API is ideal for bots and other services that require immediate and on-going access to GameWisp data; however, request functionality is also included such that data can be provided to clients on-demand when necessary. 
 
 Currently, the **Singularity API is read only**. Connected clients can receive data in real-time, but can perform no operation which alters the state of any data stored by GameWisp.
@@ -15,7 +13,7 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 
 *NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
 
-Singularity can be accessed by both client and server side applications. This minimal example was taken from the **SocketIO-client-app** example. If you prefer a more fully fleshed out example, check out that example in this repository found in the [examples](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) folder.
+Singularity can be accessed by both client and server side applications. This minimal example was taken from the [SocketIO-client-app](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) example. 
 
     <!doctype html>
 	<html>
