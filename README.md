@@ -15,16 +15,13 @@ Singularity can be accessed by both client and server side applications. A minim
 	<html>
 	    <head>
 	        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-        
-	        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/core-min.js"></script>
-	        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script>
-	        
+       	        
 	        <script>
 	            
 	            // Don't expose your secret! 
 	            var devCredentials = {
-	                key: "<developer key issued to you by GameWisp>",
-	                secret: "<developer secret issued to you by GameWisp>"
+	                key: '<channel key>',
+	                secret: '<channel secret>''
 	            }
 	            
 	            var socket = io('https://singularity.gamewisp.com');
@@ -41,18 +38,15 @@ Singularity can be accessed by both client and server side applications. A minim
 	                socket.on('authenticated', function(data) {
 	                    var channels = [
 	                        {   
-	                            identifier: '<channel identifier supplied by a GameWisp channel to your application>',
-	                            key: '<channel key supplied by a GameWisp channel to your application>'
+	                            identifier: '<channel key>',
+	                            key: '<channel secret>'
 	                        }
 	                    ];
 	               
-	                    var encrypted = CryptoJS.AES.encrypt(JSON.stringify(channels), CryptoJS.enc.Hex.parse(devCredentials.secret), { iv: CryptoJS.enc.Hex.parse(devCredentials.key) });
-	                    var data_base64 = encrypted.ciphertext.toString(crypto.enc.Base64);   
-	                    
 	                    // Emit 'channels-listen' event to authorize access to channels.
 	                    socket.emit('channels-listen', {
 	                        key: devCredentials.key,
-	                        data: data_base64,
+	                        data: channels
 	                    });
     
 	                    socket.on('app-channels-listened', function(response){
@@ -111,40 +105,7 @@ The contents of the ```response``` object on a successful authentication is a JS
 
 *NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
 
-In order to access data for any GameWisp channel, your application must be authorized by that channel. Authorization is accomplished by Channel Authorization also currently uses channel identifiers and keys. If you're an application developer, these credentials will be supplied to you by your users. Store and use these credentials with the same care that you would store and use passwords or other sensitive information from your users.
-
-#### Encrypting Data
-
-Channel credentials are used to validate any event your application may emit to the Singularity API. To ensure secure transmission of channel credentials, they are currently required to be submitted using AES-256 bit encryption. In practice, performing encryption and passing the required information is fairly straightforward. Using CryptoJS, for example, on a server application using NodeJS, would perform channel authorization as follows:
-
-    var socketClient = require('socket.io-client')('https://singularity.gamewisp.com');
-    var crypto = require('crypto-js');
-    
-    
-    socketClient.on('connect', function(){
-    
-    	socketClient.on('authenticated', function(data) {
-		    
-    		var channels = [
-	                        {   
-	                            identifier: '<channel identifier supplied by a GameWisp channel to your application>',
-	                            key: '<channel key supplied by a GameWisp channel to your application>'
-	                        }
-	                    ];
-		    
-		    //encrypt using AES style encryption for secure transmission.
-		    var encrypted = crypto.AES.encrypt(JSON.stringify(channels), crypto.enc.Hex.parse("your developer secret"), { iv: crypto.enc.Hex.parse("your developer key") });  
-		    
-		    //base64 encode the data
-		    var data_base64 = encrypted.ciphertext.toString(crypto.enc.Base64); 
-		    
-		    socketClient.emit('channels-listen', {
-		        key: "your developer key",
-		        data: data_base64,
-		    });
-		});
-	});
-
+In order to access data for any GameWisp channel, your application must be authorized by that channel. Channel Authorization also currently uses channel identifiers and keys. If you're an application developer, these credentials will be supplied to you by your users. Store and use these credentials with the same care that you would store and use passwords or other sensitive information from your users.
 
 #### Successful Authorization
 Upon verifying the channels' authorization credentials, Singularity will emit the ```app-channels-listened``` event to your application, which you can listen for as follows:
@@ -312,7 +273,9 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 	               receieve_immediately: false,
 	               removed_at: null,
 	               subscriber_limit: null,
-	               tier_bonus: false
+	               tier_bonus: false,
+	               quantity: 1,
+	               multiplier: 1
 	            },
 	            fulfillment: {
 	               id: "54350",
@@ -401,6 +364,8 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 * **removed_at**: datetime. Indicates that this benefit has been removed from a tier. Subscribers may still have this benefit if they subscribed while the benefit was part of a tier.
 * **subscriber_limit**: integer. If not null, indicates the maximum number of subscribers that can have this benefit at any one time.  
 * **tier_bonus**: boolean. Indicates that this benefit is a tier bonus. As such it does not stack with higher tiers. The ```currency-more``` and ```currency-multiplier``` benefits are typically tier bonuses.
+* **quantity**: integer. The amount of the benefit. Default is 1. This field is only relevant for benefits of the type ```currency-more```.
+* **multiplier**: integer. A multiplier on the benefit. Default is 1. This field is only relevant for benefits of the ```currency-multiplier``` type.
 
 
 The fulfillment object represents how the benefit is fulfilled by the channel. It is described as follows:
@@ -551,7 +516,9 @@ The tier published event is fired whenever a channel publishes a subscriber tier
 	            receieve_immediately: false,
 	            removed_at: null,
 	            subscriber_limit: null,
-	            tier_bonus: false
+	            tier_bonus: false,
+	            quantity: 1,
+	            multiplier: 1
 	         },
 	         //...
 	      ]
@@ -620,12 +587,9 @@ On-demand events are simply event listeners on the API that respond to events fi
 
     socket.emit('event-name', {
     	key: 'your developer key',
-    	data: <AES-256 encrypted JSON data>
+    	data: <event specific JSON data>
     })
 
-See the **Channel Authorization: Encrypting Data** section of this README for an example of how  ```data``` should be encrypted for proper transmission to singularity. 
-
-Each of the currently available on-demand events are discussed below. 
 
 #### channels-listen
 
@@ -633,20 +597,16 @@ This event is used to request channels for which your application wants data. Th
 
 	socket.emit('channels-listen', {
 		key: 'your developer key',
-		data: <AES-256 encrypted JSON data>
+		data: [
+	        {   
+	            identifier: 'channel-identifier',
+	            key: 'channel-unique-key'
+	        },
+	        //...
+    	]; 
 	});
 
-where ```data``` is an AES-256 encrypted JSON object of the following form:
-
-	[
-        {   
-            identifier: 'channel-identifier',
-            key: 'channel-unique-key'
-        },
-        //...
-    ];
-
-and ```identifier``` and ```key``` are provided to your application by users.
+```identifier``` and ```key``` are provided to your application by users.
 
 This event emits ```app-channels-listened``` back to your application. See the **Successful Authorization*** section of this README for more discussion about ```app-channels-listened``` and channel authorization in general.
 
@@ -656,18 +616,14 @@ This event is used to stop listening to data for a particular channel. It is use
 
 	socket.emit('channels-unlisten', {
 		key: 'your developer key',
-		data: <AES-256 encrypted JSON data>
+		data: [
+	        {   
+	            identifier: 'channel-identifier',
+	            key: 'channel-unique-key'
+	        },
+	        //...
+	    ];
 	});
-
-where ```data``` is an AES-256 encrypted JSON object of the following form:
-
-	[
-        {   
-            identifier: 'channel-identifier',
-            key: 'channel-unique-key'
-        },
-        //...
-    ];
 
 
 #### channels-subscribers
@@ -676,31 +632,26 @@ This event is used to return the current subscribers got a channel. It is used a
 
 	socket.emit('channels-subscribers', {
 		key: 'your developer key',
-		data: <AES-256 encrypted JSON data>
+		data: [
+	        {   
+	            identifier: 'channel-identifier',
+	            key: 'channel-unique-key'
+	            params: {
+	                array: [<gamewisp-identifiers>],
+	                status: 'all', 
+	                sort: 'newest', 
+	                benefits: true, 
+	                tier: true, 
+	            }
+	        },
+	        //...
+	    ];
 	});
 
-where ```data``` is an AES-256 encrypted JSON object of the following form:
-
-     
-    [
-        {   
-            identifier: 'channel-identifier',
-            key: 'channel-unique-key'
-            params: {
-                array: [<gamewisp-identifiers>], //default: []. An empty array or an array of gamewisp user ids, or an array of twitch usernames, or gamewisp usernames. An empty array will return all subscribers for the channel.
-                status: 'all', // default: all. options: all, active, inactive, twitch.
-                //sort: 'newest', // default: newest. options: newest, oldest
-                //benefits: true, //default: false, options: true, false. returns the benefit data for each subscriber.
-                //tier: true, //default: false, options: true, false.returns the tier for each subscriber
-    
-            }
-        },
-        //...
-    ];
 
 ```params```  is a JSON object of optional parameters that can be used to request particular subscriber data for the specified channel(s). Each element of ```params``` is described as follows:
 
-* **array**: An array of GameWisp user ids, twitch usernames, or GameWisp usernames or any combination thereof. If any of the specified elements belong to a subscriber of the particular channel, that subscriber's information will be returned. Specifying a list of users in this parameter limits all other optional parameters to only the list specified users. The default parameter is an empty array, which returns all of the subscribers for the channel.
+* **array**: An array of **GameWisp user ids, twitch usernames, or GameWisp usernames or any combination thereof**. If any of the specified elements belong to a subscriber of the particular channel, that subscriber's information will be returned. Specifying a list of users in this parameter limits all other optional parameters to only the list specified users. The default parameter is an empty array, which returns all of the subscribers for the channel.
 * **status**: string. options include: 
  - 'all': Default. Does not filter the list of subscribers by status. 
  - 'active': Only returns subscribers that are active. 
@@ -712,7 +663,8 @@ where ```data``` is an AES-256 encrypted JSON object of the following form:
 * **benefits**: boolean. Default is false. If true, returns the benefits for each subscriber.
 * **tier**: boolean. Default is false. If true, returns tier information for the subscriber. 
 
-This event emits ```app-channels-subscribers``` back to your application upon completion. The returned JSON object has the following structure:
+This event emits ```app-channels-subscribers``` back to your application upon completion. The returned JSON object
+ has the following structure:
 
     {
 	   result: {
@@ -740,7 +692,9 @@ This event emits ```app-channels-subscribers``` back to your application upon co
 	                        receieve_immediately: false,
 	                        removed_at: null,
 	                        subscriber_limit: null,
-	                        tier_bonus: false
+	                        tier_bonus: false,
+	                        quantity: 1,
+	                        multiplier: 1
 	                     },
 	                     fulfillment: {
 	                        id: "49917",
@@ -800,18 +754,21 @@ Please note, that depending on how you use this event, the resulting response ob
 
 This event is used to return the tiers for a channel. It is used as follows:
 
-    [
-        {   //valid
-            identifier: 'channel-identifer',
-            key: 'channel-unique-key',
-            params: {
-                subscriberInfo: true, 
-                subscriberCount: true, 
-                sort: 'oldest'
-    
-            }
-        }
-    ];
+    socket.emit('channels-subscribers', {
+		key: 'your developer key',
+		data: [
+	        {   
+	            identifier: 'channel-identifer',
+	            key: 'channel-unique-key',
+	            params: {
+	                subscriberInfo: true, 
+	                subscriberCount: true, 
+	                sort: 'oldest'
+	    
+	            }
+	        }
+	    ];
+	});
 
 
 ```params```  is a JSON object of optional parameters that can be used to request particular subscriber data for the specified channel(s) for each tier. Each element of ```params``` is described as follows:
@@ -874,7 +831,9 @@ This event emits ```app-channels-tiers``` back to your application upon completi
 	                     receieve_immediately: false,
 	                     removed_at: null,
 	                     subscriber_limit: null,
-	                     tier_bonus: false
+	                     tier_bonus: false,
+	                     quantity: 1,
+	                     multiplier: 1
 	                  },
 	                  //...
 	               ]
