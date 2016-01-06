@@ -1,0 +1,15 @@
+{
+  "name": "GameWisp-Twitch-Bot-Example",
+  "version": "0.1.0",
+  "description": "Example GameWisp Bot for Twitch",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "author": "Michael Anderson",
+  "license": "MIT",
+  "dependencies": {
+    "tmi.js": "0.0.24"
+  }
+}
