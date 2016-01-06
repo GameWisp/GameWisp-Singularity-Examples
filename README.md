@@ -11,7 +11,7 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 
 ## Obtaining Credentials
 
-If you're a developer who wishes to build something with the Singularity API, email us at help [at] gamewisp [dot] com and we'll get you a set of developer credentials. Requesting credentials will only be necessary while the API is in closed beta. 
+If you're a developer who wishes to build something with the Singularity API, email us at **help [at] gamewisp [dot] com** and we'll get you a set of developer credentials. Requesting credentials will only be necessary while the API is in closed beta. 
 
 ## Quick Start
 
@@ -29,40 +29,40 @@ Singularity can be accessed by both client and server side applications. This mi
             
             // Do not expose your secret! 
             var devCredentials = {
-                key: '<channel key>',
-                secret: '<channel secret>''
+                key: "<channel key>",
+                secret: "<channel secret>"
             };
             
-            var socket = io('https://singularity.gamewisp.com');
+            var socket = io("https://singularity.gamewisp.com");
             
-            socket.on('connect', function(){
+            socket.on("connect", function(){
 
-                socket.emit('authentication', 
+                socket.emit("authentication", 
                     {
-                        key: key, 
-                        secret: secret,
+                        key: devCredentials.key, 
+                        secret: devCredentials.secret,
                     }
                 );
             
-                socket.on('authenticated', function(data) {
+                socket.on("authenticated", function(data) {
                     var channels = [
                         {   
-                            identifier: '<channel key>',
-                            key: '<channel secret>'
+                            identifier: "<channel key>",
+                            key: "<channel secret>"
                         }
                     ];
                
-                    // Emit 'channels-listen' event to authorize access to channels.
-                    socket.emit('channels-listen', {
+                    // Emit "channels-listen" event to authorize access to channels.
+                    socket.emit("channels-listen", {
                         key: devCredentials.key,
                         data: channels
                     });
 
-                    socket.on('app-channels-listened', function(response){
+                    socket.on("app-channels-listened", function(response){
                         //...                    
                     });
 
-                    socket.on('event-of-interest', function(response){
+                    socket.on("event-of-interest", function(response){
                         //...
                     });
                 });
@@ -124,7 +124,7 @@ Upon verifying the channels' authorization credentials, Singularity will emit th
 
 ```javascript
  socketClient.on('app-channels-listened', function(response){
-      console.log('app-channels-listened: ' + response);                            
+      //Do something with the response                           
   });
 ```
 
@@ -189,7 +189,7 @@ ids: {
 The user names of the user. If the user's twitch account is linked to GameWisp, the twitch username is also provided. If not, it is null. 
 
 ```json
-username: {
+usernames: {
          gamewisp: "user_name",
          twitch: "user_name_on_twitch"
       },
@@ -218,7 +218,7 @@ This event fires whenever a channel gains a new subscriber and has the following
          gamewisp: "26356",
          twitch: "46984772"
       },
-      username: {
+      usernames: {
          gamewisp: "user_name",
          twitch: "user_name_gamewisp"
       },
@@ -333,7 +333,7 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
          gamewisp: "111111",
          twitch: "121212121212"
       },
-      username: {
+      usernames: {
          gamewisp: "gamewisp_username",
          twitch: "twitch_username"
       },
@@ -356,6 +356,26 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
  The ```benefits``` array contains an array of benefit-fulfillment pairs. The benefit object in the pair describes a single benefit for the subscriber. The fulfillment object in the pair provides information about whether or not the benefit has been fulfilled.
 
  The benefit object:
+
+```json
+benefit: {
+   id: "3",
+   delivery: "delivery-messaging",
+   title: "Subscriber Messaging",
+   description: "Receive Subscriber-only messages from me.",
+   channel_data: null,
+   type: "unknown-type",
+   month_delay: null,
+   recurring: false,
+   recurring_input: false,
+   receieve_immediately: false,
+   removed_at: null,
+   subscriber_limit: null,
+   tier_bonus: false,
+   quantity: 1,
+   multiplier: 1
+},
+```
 
  * **id**: The identifier for the benefit. Note that the "Premium Videos", "Early Access Videos", and "Subscriber Messaging" benefits will have the same identifier (1, 2, and 3 respectively) across GameWisp channels.
  * **delivery**: The delivery type of the benefit. This describes how the benefit is delivered by GameWisp.
@@ -462,7 +482,7 @@ This event fires whenever the status of a subscriber changes. This change can be
          gamewisp: "123222",
          twitch: "95512221241604"
       },
-      username: {
+      usernames: {
          gamewisp: "gamewisp_username",
          twitch: "twitch_username"
       },
@@ -788,7 +808,7 @@ This event emits ```app-channels-subscribers``` back to your application upon co
                   gamewisp: "12323",
                   twitch: "455552422"
                },
-               username: {
+               usernames: {
                   gamewisp: "gamewisp-user-name",
                   twitch: "twitch-user-name"
                },
@@ -874,7 +894,7 @@ This event emits ```app-channels-tiers``` back to your application upon completi
                         gamewisp: "12354",
                         twitch: null
                      },
-                     username: {
+                     usernames: {
                         gamewisp: "gamewisp-user-name",
                         twitch: null
                      },
