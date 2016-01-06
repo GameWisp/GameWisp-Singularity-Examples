@@ -596,7 +596,7 @@ On-demand events are simply event listeners on the API that respond to events fi
 
 ### channels-listen
 
-This event is used to request channels for which your application wants data. This event is the primary means of channel authorization, and is documented in detail in the ```Channel Authorization``` section of this README. It is used as follows:
+This event is used to request channels for which your application wants data. This event is the primary means of channel authorization, and is documented in detail in [Channel Authorization](#the-singularity-api-authorization-and-authentication-channel-authorization). It is used as follows:
 
 	socket.emit('channels-listen', {
 		key: 'your developer key',
