@@ -1,10 +1,13 @@
 
 
-# GameWisp-Singularity-Examples
+# The Singularity API
 A public repository of code examples that leverage the GameWisp Singularity API. Singularity Documentation is also included.
 
+The Singularity API is real-time API that is meant to be interacted with using WebSockets. Clients connect to the API and listen to specific events of interest and receive data from the API in real-time. Unlike a conventional REST API, **there is no need to repeatedly poll or request on specific endpoints**. So don't do it. This API is ideal for bots and other services that require immediate and on-going access to GameWisp data; however, request functionality is also included such that data can be provided to clients on-demand when necessary. 
 
-A more visually appealing form of these docs can be accessed at: https://singularity.gamewisp.com/docs
+Currently, the **Singularity API is read only**. Connected clients can receive data in real-time, but can perform no operation which alters the state of any data stored by GameWisp.
+
+**A more visually appealing form of these docs can be accessed at: https://singularity.gamewisp.com/docs**
 
 **This documentation is very work in progress, and may be incomplete, incorrect, or victim to numerous typos. Bear with us -- this documentation is still a rough draft.**
 
@@ -69,11 +72,8 @@ Singularity can be accessed by both client and server side applications. This mi
 
 
 
-## The API
+## Authorization and Authentication
 
-The Singularity API is real-time API that is meant to be interacted with using WebSockets. Clients connect to the API and listen to specific events of interest and receive data from the API in real-time. Unlike a conventional REST API, **there is no need to repeatedly poll or request on specific endpoints**. So don't do it. This API is ideal for bots and other services that require immediate and on-going access to GameWisp data; however, request functionality is also included such that data can be provided to clients on-demand when necessary. 
-
-Currently, the **Singularity API is read only**. Connected clients can receive data in real-time, but can perform no operation which alters the state of any data stored by GameWisp.
 
 ### Developer Authentication
 
@@ -110,7 +110,7 @@ The contents of the ```response``` object on a successful authentication is a JS
 
 In order to access data for any GameWisp channel, your application must be authorized by that channel. Channel Authorization also currently uses channel identifiers and keys. If you're an application developer, these credentials will be supplied to you by your users. Store and use these credentials with the same care that you would store and use passwords or other sensitive information from your users.
 
-#### Successful Authorization
+### Successful Authorization
 Upon verifying the channels' authorization credentials, Singularity will emit the ```app-channels-listened``` event to your application, which you can listen for as follows:
 
      socketClient.on('app-channels-listened', function(response){
@@ -148,7 +148,7 @@ The response is a JSON object of the form:
 
 If you receive a ```listening: true``` for a channel, you will receive data for that channel from singularity. 
 
-### Real-Time Events
+## Real-Time Events
 
 Once a channel is authenticated, your application can receive data pertaining to that channel by listening for any or all of 12 different events. Pick and choose the events that pertain to your particular use case. Data from real-time events is JSON formatted, and will have the following basic structure:
 
@@ -178,7 +178,7 @@ The user names of the user. If the user's twitch account is linked to GameWisp, 
 
 There are currently 12 events an application can choose to listen to for each authorized channel. They are as follows:
 
-#### subscriber-new
+### subscriber-new
 
 Using Socket.IO, this event can be listened to as follows:
 
@@ -243,7 +243,7 @@ This event sends identical data to the ```subscriber-new``` event but is include
 
 It is important to keep in mind that GameWisp processes renewals each day for all the channels that are flagged for renewal on that day at approximately 12:00PM CST. Therefore, if your application supports multiple GameWisp channels, it is not uncommon to receive multiple ```subscriber-renewed``` events in succession for channels as they are renewed.
 
-#### subscriber-benefits-change
+### subscriber-benefits-change
 
 This is arguably the most important event for an application attempting to provide benefit fulfillment of some sort for GameWisp subscribers. As such, the event and its response are described in detail here. 
 
@@ -411,7 +411,7 @@ The fulfillment object represents how the benefit is fulfilled by the channel. I
 
 Additionally, this event contains information pertaining to the subscriber, their payment amount, etc. that can also be found in the ```subscriber-new``` event documentation.
 
-#### subscriber-status-change
+### subscriber-status-change
 
 Using Socket.IO, this event can be listened to as follows:
 
@@ -450,7 +450,7 @@ This event fires whenever the status of a subscriber changes. This change can be
 
 The response is similar to the ```subscriber-new``` event, but the ```status``` field will contain the newly updated subscriber status. This event is not necessarily followed by a ```subscriber-benefits-change``` event.
 
-#### benefit-fulfilled
+### benefit-fulfilled
 
 Using Socket.IO this benefit can be listened to as follows:
 
@@ -462,7 +462,7 @@ This event fires when a channel fulfills a benefit. The structure of the respons
 
 This event only fires for benefits that the channel fulfills manually through the GameWisp channel dashboard. 
 
-#### benefit-dismissed-user
+### benefit-dismissed-user
 
 ***Note: This event is currently not implemented, but should be very soon.***
 Using Socket.IO this benefit can be listened to as follows:
@@ -473,7 +473,7 @@ Using Socket.IO this benefit can be listened to as follows:
 
 This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the ```benefit-fulfilled``` event.
 
-#### benefit-dismissed-channel
+### benefit-dismissed-channel
 
 ***Note: This event is currently not implemented, but should be very soon.***
 Using Socket.IO this benefit can be listened to as follows:
@@ -484,7 +484,7 @@ Using Socket.IO this benefit can be listened to as follows:
 
 This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the ```benefit-fulfilled``` event.
 
-#### tier-published
+### tier-published
 
 Using Socket.IO this benefit can be listened to as follows:
 
@@ -542,7 +542,7 @@ The ```tier-published``` event contains the following ```data``` fields:
 
 Published tiers can be seen on a channel's GameWisp page. Subscribers can only be granted benefits from published tiers. However, if a subscriber is gaining benefits for a tier that a channel sets to unpublished, the subscriber still has access to those benefits since they were in a published tier at the time of subscription. Recurring benefits from an unpublished tier will not recur.
 
-#### tier-unpublished
+### tier-unpublished
 
 Using Socket.IO this benefit can be listened to as follows:
 
@@ -552,7 +552,7 @@ Using Socket.IO this benefit can be listened to as follows:
 
 The analogue of the ```tier-published``` event. Fires when a channel unpublishes a tier. The response object is identical to ```tier-published```.
 
-#### tier-modified
+### tier-modified
 
 Using Socket.IO this benefit can be listened to as follows:
 
@@ -584,7 +584,7 @@ This event fires whenever a channel modifies their tiers. Due to the complexity 
 	}
 
 
-### On-Demand Events
+## On-Demand Events
 
 On-demand events are simply event listeners on the API that respond to events fired by your application. All on-demand events require the following structure using Socket.IO:
 
@@ -594,7 +594,7 @@ On-demand events are simply event listeners on the API that respond to events fi
     })
 
 
-#### channels-listen
+### channels-listen
 
 This event is used to request channels for which your application wants data. This event is the primary means of channel authorization, and is documented in detail in the ```Channel Authorization``` section of this README. It is used as follows:
 
@@ -613,7 +613,7 @@ This event is used to request channels for which your application wants data. Th
 
 This event emits ```app-channels-listened``` back to your application. See the **Successful Authorization*** section of this README for more discussion about ```app-channels-listened``` and channel authorization in general.
 
-#### channels-unlisten
+### channels-unlisten
 
 This event is used to stop listening to data for a particular channel. It is used as follows:
 
@@ -629,7 +629,7 @@ This event is used to stop listening to data for a particular channel. It is use
 	});
 
 
-#### channels-subscribers
+### channels-subscribers
 
 This event is used to return the current subscribers got a channel. It is used as follows:
 
@@ -753,7 +753,7 @@ The response object contains subscriber information (described in detail in the 
 
 Please note, that depending on how you use this event, the resulting response object can be **very** large. It is not recommended to grab all the benefit and tier information for every subscriber simultaneously. It is generally advisable to use this event to get a full list of subscribers for a channel, and then check the benefits of individual subscribers through subsequent calls. 
 
-#### channels-tiers
+### channels-tiers
 
 This event is used to return the tiers for a channel. It is used as follows:
 
