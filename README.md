@@ -80,28 +80,34 @@ Developers are currently authenticated using a key and secret. While Singularity
 
 Developer authentication is handled programmatically as follows:
 
-    socket.emit('authentication', 
-        {
-            key: "your developer key", 
-            secret: "your developer secret",
-        }
-    );
+```javascript
+socket.emit('authentication', 
+    {
+        key: "your developer key", 
+        secret: "your developer secret",
+    }
+);
+```
 
 The API will respond with the ```authenticated``` event if your credentials are properly authenticated:
 
-    socket.on('authenticated', function(response) {
-    	//your logic here
-    });
+```javascript
+socket.on('authenticated', function(response) {
+	//your logic here
+});
+```
 
 
 The contents of the ```response``` object on a successful authentication is a JSON object of the following form:
 
-    {
-	    result: {
-	      status: 1,
-	      message: "Developer Application Authenticated."
-	    },
-    }
+```json
+{
+    result: {
+      status: 1,
+      message: "Developer Application Authenticated."
+    },
+}
+```
 
 ### Channel Authorization
 
