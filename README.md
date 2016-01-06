@@ -9,6 +9,12 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 
 **This documentation is very work in progress, and may be incomplete, incorrect, or victim to numerous typos. Bear with us -- this documentation is still a rough draft.**
 
+Fully functional [examples](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples) of using the API can be found here:
+
+* [Client](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) - A single page application with minimal dependencies that interacts with Singularity directly in the browser.
+* [Server](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-server-app) - A NodeJS server that communicates with Singularity.
+* [TwitchBot](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/Twitch-bot) - A NodeJS server application that passes data from Singularity into a Twitch channel's chat.
+
 ## Obtaining Credentials
 
 If you're a developer who wishes to build something with the Singularity API, email us at **help [at] gamewisp [dot] com** and we'll get you a set of developer credentials. Requesting credentials will only be necessary while the API is in closed beta. 
