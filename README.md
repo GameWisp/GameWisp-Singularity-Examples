@@ -9,6 +9,10 @@ Currently, the **Singularity API is read only**. Connected clients can receive d
 
 **This documentation is very work in progress, and may be incomplete, incorrect, or victim to numerous typos. Bear with us -- this documentation is still a rough draft.**
 
+## Obtaining Credentials
+
+If you're a developer who wishes to build something with the Singularity API, email us at help [at] gamewisp [dot] com and we'll get you a set of developer credentials. Requesting credentials will only be necessary while the API is in closed beta. 
+
 ## Quick Start
 
 *NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
@@ -23,7 +27,7 @@ Singularity can be accessed by both client and server side applications. This mi
    	        
         <script>
             
-            // Don't expose your secret! 
+            // Do not expose your secret! 
             var devCredentials = {
                 key: '<channel key>',
                 secret: '<channel secret>''
@@ -118,32 +122,36 @@ In order to access data for any GameWisp channel, your application must be autho
 ### Successful Authorization
 Upon verifying the channels' authorization credentials, Singularity will emit the [app-channels-listened](#the-singularity-api-authorization-and-authentication-successful-authorization) event to your application, which you can listen for as follows:
 
-     socketClient.on('app-channels-listened', function(response){
-          console.log('app-channels-listened: ' + response);                            
-      });
+```javascript
+ socketClient.on('app-channels-listened', function(response){
+      console.log('app-channels-listened: ' + response);                            
+  });
+```
 
 The response is a JSON object of the form:
 
-    {
-	   result: {
-	      status: 1,
-	      message: "Channels authenticated."
-	   },
-	   data: [
-	      {
-	         id: "channel identifier 1",
-	         status: "authenticated",
-	         listening: true
-	      },
-	      {
-	         id: "channel identifier 2",
-	         status: "invalid",
-	         listening: false
-	      },
-	      //...
-	   ],
-	   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
-	}
+```json
+{
+   result: {
+      status: 1,
+      message: "Channels authenticated."
+   },
+   data: [
+      {
+         id: "channel identifier 1",
+         status: "authenticated",
+         listening: true
+      },
+      {
+         id: "channel identifier 2",
+         status: "invalid",
+         listening: false
+      },
+      //...
+   ],
+   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
+}
+```
 
 ```result``` contains the overall status of the call. A status of 1 indicates success, 0 indicates failure.  ```data``` contains an array of objects, one per channel identifier-key pair in [channels-listen](#the-singularity-api-on-demand-events-channels-listen). The contents of this object are as follows:
 
@@ -157,29 +165,35 @@ If you receive a ```listening: true``` for a channel, you will receive data for 
 
 Once a channel is authenticated, your application can receive data pertaining to that channel by listening for any or all of 12 different events. Pick and choose the events that pertain to your particular use case. Data from real-time events is JSON formatted, and will have the following basic structure:
 
-    {
-		event: "event-name",
-		id: "channel identifier",
-		data: {
-			//data for the particular event.
-		}
+```json
+{
+	event: "event-name",
+	id: "channel identifier",
+	data: {
+		//data for the particular event.
 	}
+}
+```
 
 The ```data``` object contains information pertaining to the event. This object is unique for every event type, but contains some common elements that are described as follows:
 
 The IDs of the user. If the user has a twitch account linked to GameWisp, their Twitch ID is also provided. If not, it is null.
-    
-    ids: {
-	         gamewisp: "1111",
-	         twitch: "22222222"
-	      },
+
+```json    
+ids: {
+         gamewisp: "1111",
+         twitch: "22222222"
+      },
+```
 
 The user names of the user. If the user's twitch account is linked to GameWisp, the twitch username is also provided. If not, it is null. 
 
-	username: {
-	         gamewisp: "user_name",
-	         twitch: "user_name_on_twitch"
-	      },
+```json
+username: {
+         gamewisp: "user_name",
+         twitch: "user_name_on_twitch"
+      },
+```
 
 There are currently 12 events an application can choose to listen to for each authorized channel. They are as follows:
 
@@ -187,38 +201,42 @@ There are currently 12 events an application can choose to listen to for each au
 
 Using Socket.IO, this event can be listened to as follows:
 
-    socket.on('subscriber-new', function(data){
-        //Do something
-    });
+```javascript
+socket.on('subscriber-new', function(data){
+    //Do something
+});
+```
 
 This event fires whenever a channel gains a new subscriber and has the following JSON structure:
 
-     {
-	   event: "subscriber-new",
-	   id: "channel identifier ",
-	   data: {
-	      ids: {
-	         gamewisp: "26356",
-	         twitch: "46984772"
-	      },
-	      username: {
-	         gamewisp: "user_name",
-	         twitch: "user_name_gamewisp"
-	      },
-	      status: "active",
-	      amount: "3.99",
-	      subscribed_at: "2015-12-30 00:00:00",
-	      end_of_access: "2016-01-30 23:59:00",
-	      tier: {
-	         id: "111111",
-	         title: "Tier Title",
-	         level: "1",
-	         cost: "3.99",
-	         description: "Tier description",
-	         published: true
-	      }
-	   }
-    }
+```json
+ {
+   event: "subscriber-new",
+   id: "channel identifier ",
+   data: {
+      ids: {
+         gamewisp: "26356",
+         twitch: "46984772"
+      },
+      username: {
+         gamewisp: "user_name",
+         twitch: "user_name_gamewisp"
+      },
+      status: "active",
+      amount: "3.99",
+      subscribed_at: "2015-12-30 00:00:00",
+      end_of_access: "2016-01-30 23:59:00",
+      tier: {
+         id: "111111",
+         title: "Tier Title",
+         level: "1",
+         cost: "3.99",
+         description: "Tier description",
+         published: true
+      }
+   }
+}
+```
 
 
 
@@ -240,9 +258,11 @@ This event fires as soon as a subscriber has newly subscribed to a channel. It i
 
 Using Socket.IO, this event can be listened to as follows:
 
-    socket.on('subscriber-renewed', function(data){
-        //Do something
-    });
+```javascript
+socket.on('subscriber-renewed', function(data){
+    //Do something
+});
+```
 
 This event sends identical data to the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event but is included as its own unique event for convenience. The [subscriber-renewed](#the-singularity-api-real-time-events-subscriber-renewed) event fires whenever a subscriber is successfully billed for another month on GameWisp.
 
@@ -256,78 +276,82 @@ It is well worth familiarizing yourself with this section of the documentation i
 
 Using Socket.IO, this event can be listened to as follows:
 
-    socket.on('subscriber-benefits-change', function(data){
-        //Do something
-    });
+```javascript
+socket.on('subscriber-benefits-change', function(data){
+    //Do something
+});
+```
 
 This event fires whenever a subscriber's benefits change. A benefit change can be triggered by a user subscribing to a new channel, upgrading their subscription to a channel, or downgrading their subscription to a channel. This event can also fire if the channel makes changes to a tier that contains active subscribers. In this case, a [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) event will fire for each subscriber currently in the modified tier. This event has the following JSON structure:
 
-    {
-	   event: "subscriber-benefits-change",
-	   id: "channel identifier",
-	   data: {
-	      benefits: [
-	         {
-	            benefit: {
-	               id: "3",
-	               delivery: "delivery-messaging",
-	               title: "Subscriber Messaging",
-	               description: "Receive Subscriber-only messages from me.",
-	               channel_data: null,
-	               type: "unknown-type",
-	               month_delay: null,
-	               recurring: false,
-	               recurring_input: false,
-	               receieve_immediately: false,
-	               removed_at: null,
-	               subscriber_limit: null,
-	               tier_bonus: false,
-	               quantity: 1,
-	               multiplier: 1
-	            },
-	            fulfillment: {
-	               id: "54350",
-	               benefit_id: "3",
-	               tier_id: "8781",
-	               channel_fulfillment_response: null,
-	               fulfilled_at: "2015-12-30 21:29:07",
-	               previously_fulfilled_at: null,
-	               disabled_at: null,
-	               user_input_provided_at: null,
-	               recurring: true,
-	               granted_at: {
-	                  date: "2015-12-30 21:29:07.000000",
-	                  timezone_type: 3,
-	                  timezone: "UTC"
-	               },
-	               channel_cancelled_at: null,
-	               status: "active"
-	            }
-	         },
-	         //...
-	      ],
-	      ids: {
-	         gamewisp: "111111",
-	         twitch: "121212121212"
-	      },
-	      username: {
-	         gamewisp: "gamewisp_username",
-	         twitch: "twitch_username"
-	      },
-	      status: "active",
-	      amount: "3.99",
-	      subscribed_at: "2015-12-30 00:00:00",
-	      end_of_access: "2016-01-30 23:59:00",
-	      tier: {
-	         id: "11112",
-	         title: "Tier Title",
-	         level: "1",
-	         cost: "3.99",
-	         description: "Tier description",
-	         published: true
-	      }
-	   }
-	}
+```json
+{
+   event: "subscriber-benefits-change",
+   id: "channel identifier",
+   data: {
+      benefits: [
+         {
+            benefit: {
+               id: "3",
+               delivery: "delivery-messaging",
+               title: "Subscriber Messaging",
+               description: "Receive Subscriber-only messages from me.",
+               channel_data: null,
+               type: "unknown-type",
+               month_delay: null,
+               recurring: false,
+               recurring_input: false,
+               receieve_immediately: false,
+               removed_at: null,
+               subscriber_limit: null,
+               tier_bonus: false,
+               quantity: 1,
+               multiplier: 1
+            },
+            fulfillment: {
+               id: "54350",
+               benefit_id: "3",
+               tier_id: "8781",
+               channel_fulfillment_response: null,
+               fulfilled_at: "2015-12-30 21:29:07",
+               previously_fulfilled_at: null,
+               disabled_at: null,
+               user_input_provided_at: null,
+               recurring: true,
+               granted_at: {
+                  date: "2015-12-30 21:29:07.000000",
+                  timezone_type: 3,
+                  timezone: "UTC"
+               },
+               channel_cancelled_at: null,
+               status: "active"
+            }
+         },
+         //...
+      ],
+      ids: {
+         gamewisp: "111111",
+         twitch: "121212121212"
+      },
+      username: {
+         gamewisp: "gamewisp_username",
+         twitch: "twitch_username"
+      },
+      status: "active",
+      amount: "3.99",
+      subscribed_at: "2015-12-30 00:00:00",
+      end_of_access: "2016-01-30 23:59:00",
+      tier: {
+         id: "11112",
+         title: "Tier Title",
+         level: "1",
+         cost: "3.99",
+         description: "Tier description",
+         published: true
+      }
+   }
+}
+```
  
  The ```benefits``` array contains an array of benefit-fulfillment pairs. The benefit object in the pair describes a single benefit for the subscriber. The fulfillment object in the pair provides information about whether or not the benefit has been fulfilled.
 
@@ -378,21 +402,22 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 
 The fulfillment object represents how the benefit is fulfilled by the channel. It is described as follows:
 
-    fulfillment: {
-	               id: "54350",
-	               benefit_id: "3",
-	               tier_id: "8781",
-	               channel_fulfillment_response: null,
-	               fulfilled_at: "2015-12-30 21:29:07",
-	               previously_fulfilled_at: null,
-	               disabled_at: null,
-	               user_input_provided_at: null,
-	               recurring: true,
-	               granted_at: "2015-12-30 21:29:07.000000",
-	               channel_cancelled_at: null,
-	               status: "active"
-	            }
-
+```json
+fulfillment: {
+               id: "54350",
+               benefit_id: "3",
+               tier_id: "8781",
+               channel_fulfillment_response: null,
+               fulfilled_at: "2015-12-30 21:29:07",
+               previously_fulfilled_at: null,
+               disabled_at: null,
+               user_input_provided_at: null,
+               recurring: true,
+               granted_at: "2015-12-30 21:29:07.000000",
+               channel_cancelled_at: null,
+               status: "active"
+            }
+```
 
 * **id**: The unique identifier for the fulfillment object.
 * **benefit_id**: The benefit identifier to which the fulfillment object belongs. In other words, a fulfillment object with ```benefit_id = 5``` was used to fulfill the benefit with ```id = 5``` for that particular channel.  
@@ -420,38 +445,42 @@ Additionally, this event contains information pertaining to the subscriber, thei
 
 Using Socket.IO, this event can be listened to as follows:
 
-    socket.on('subscriber-benefits-change', function(data){
-        //Do something
-    });
+```javascript
+socket.on('subscriber-benefits-change', function(data){
+    //Do something
+});
+```
 
 This event fires whenever the status of a subscriber changes. This change can be the result of a subscriber cancelling, a subscriber's recurring payment failing, etc. The event response has the following JSON structure:\
 
-    {
-	   event: "subscriber-status-change",
-	   id: "channel identifier",
-	   data: {
-	      ids: {
-	         gamewisp: "123222",
-	         twitch: "95512221241604"
-	      },
-	      username: {
-	         gamewisp: "gamewisp_username",
-	         twitch: "twitch_username"
-	      },
-	      status: "trial",
-	      amount: "2.99",
-	      subscribed_at: "2015-12-31 18:44:07",
-	      end_of_access: "2016-01-30 18:44:07",
-	      tier: {
-	         id: "123",
-	         title: "Tier Title",
-	         level: "1",
-	         cost: "2.99",
-	         description: "Tier description.",
-	         published: true
-	      }
-    	}	
-    }
+```json
+{
+   event: "subscriber-status-change",
+   id: "channel identifier",
+   data: {
+      ids: {
+         gamewisp: "123222",
+         twitch: "95512221241604"
+      },
+      username: {
+         gamewisp: "gamewisp_username",
+         twitch: "twitch_username"
+      },
+      status: "trial",
+      amount: "2.99",
+      subscribed_at: "2015-12-31 18:44:07",
+      end_of_access: "2016-01-30 18:44:07",
+      tier: {
+         id: "123",
+         title: "Tier Title",
+         level: "1",
+         cost: "2.99",
+         description: "Tier description.",
+         published: true
+      }
+	}	
+}
+```
 
 The response is similar to the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event, but the ```status``` field will contain the newly updated subscriber status. This event is not necessarily followed by a [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) event.
 
@@ -459,9 +488,11 @@ The response is similar to the [subscriber-new](#the-singularity-api-real-time-e
 
 Using Socket.IO this benefit can be listened to as follows:
 
-    socket.on('benefit-fulfilled', function(data){
-    	//Do something.                        
-    });
+```javascript
+socket.on('benefit-fulfilled', function(data){
+	//Do something.                        
+});
+```
 
 This event fires when a channel fulfills a benefit. The structure of the response is similar to the [subscriber-status-change](#the-singularity-api-real-time-events-subscriber-status-change) except that the benefits array only contains the benefit-fulfillment pair of the filled benefit.
 
@@ -472,9 +503,11 @@ This event only fires for benefits that the channel fulfills manually through th
 ***Note: This event is currently not implemented, but should be very soon.***
 Using Socket.IO this benefit can be listened to as follows:
 
-    socket.on('benefit-dismissed-user', function(data){
-    	//Do stuff.
-    });
+```javascript
+socket.on('benefit-dismissed-user', function(data){
+	//Do stuff.
+});
+```
 
 This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the [benefit-fulfilled](#the-singularity-api-real-time-events-benefit-fulfilled) event.
 
@@ -483,9 +516,11 @@ This event fires whenever a user dismisses and event they do not want. The struc
 ***Note: This event is currently not implemented, but should be very soon.***
 Using Socket.IO this benefit can be listened to as follows:
 
-    socket.on('benefit-dismissed-channel', function(data){
-    	//Do stuff.
-    });
+```javascript
+socket.on('benefit-dismissed-channel', function(data){
+	//Do stuff.
+});
+```
 
 This event fires whenever a user dismisses and event they do not want. The structure of the JSON response is identical to the [benefit-fulfilled](#the-singularity-api-real-time-events-benefit-fulfilled) event.
 
@@ -493,45 +528,49 @@ This event fires whenever a user dismisses and event they do not want. The struc
 
 Using Socket.IO this benefit can be listened to as follows:
 
-    socket.on('tier-published', function(data){
-    	//Do stuff.
-    });
+```javascript
+socket.on('tier-published', function(data){
+	//Do stuff.
+});
+```
 
 The tier published event is fired whenever a channel publishes a subscriber tier. The tier may be new, or it may a tier that was unpublished and then published again by the channel. The JSON structure of the event is as follows:
 
-    {
-	   event: "tier-published",
-	   id: "channel-id",
-	   data: {
-	      id: "12345",
-	      title: "Tier Title",
-	      level: "1",
-	      cost: "4.00",
-	      description: "Tier description.",
-	      published: true,
-	      subscribers: 0,
-	      benefits: [
-	         {
-	            id: "3",
-	            delivery: "delivery-messaging",
-	            title: "Subscriber Messaging",
-	            description: "Receive Subscriber-only messages from me.",
-	            channel_data: null,
-	            type: "unknown-type",
-	            month_delay: null,
-	            recurring: false,
-	            recurring_input: false,
-	            receieve_immediately: false,
-	            removed_at: null,
-	            subscriber_limit: null,
-	            tier_bonus: false,
-	            quantity: 1,
-	            multiplier: 1
-	         },
-	         //...
-	      ]
-	   }
-	}
+```json
+{
+   event: "tier-published",
+   id: "channel-id",
+   data: {
+      id: "12345",
+      title: "Tier Title",
+      level: "1",
+      cost: "4.00",
+      description: "Tier description.",
+      published: true,
+      subscribers: 0,
+      benefits: [
+         {
+            id: "3",
+            delivery: "delivery-messaging",
+            title: "Subscriber Messaging",
+            description: "Receive Subscriber-only messages from me.",
+            channel_data: null,
+            type: "unknown-type",
+            month_delay: null,
+            recurring: false,
+            recurring_input: false,
+            receieve_immediately: false,
+            removed_at: null,
+            subscriber_limit: null,
+            tier_bonus: false,
+            quantity: 1,
+            multiplier: 1
+         },
+         //...
+      ]
+   }
+}
+```
 
 
 The [tier-published](#the-singularity-api-real-time-events-tier-published) event contains the following ```data``` fields:
@@ -551,9 +590,11 @@ Published tiers can be seen on a channel's GameWisp page. Subscribers can only b
 
 Using Socket.IO this benefit can be listened to as follows:
 
-    socket.on('tier-unpublished', function(data){
-    	//Do stuff.
-    });
+```javascript
+socket.on('tier-unpublished', function(data){
+	//Do stuff.
+});
+```
 
 The analogue of the [tier-published](#the-singularity-api-real-time-events-tier-unpublished) event. Fires when a channel unpublishes a tier. The response object is identical to [tier-published](#the-singularity-api-real-time-events-tier-unpublished).
 
@@ -561,32 +602,36 @@ The analogue of the [tier-published](#the-singularity-api-real-time-events-tier-
 
 Using Socket.IO this benefit can be listened to as follows:
 
-    socket.on('tier-modified', function(data){
-    	//Do stuff.
-    });
+```javascript
+socket.on('tier-modified', function(data){
+	//Do stuff.
+});
+```
 
 
 This event fires whenever a channel modifies their tiers. Due to the complexity of tier creation and editing (e.g., modifying one tier can potentially have an impact on others), the full list of tiers the channel has is returned in the [tier-modified](#the-singularity-api-real-time-events-tier-modified) response. Depending on the number of tiers and benefits a channel has available, this response can be quite large.
 
-	{
-	   event: "tier-modified",
-	   id: "channel identifier",
-	   data: [
-	      {
-	         id: "12334",
-	         title: "Tier Title",
-	         level: "1",
-	         cost: "3.99",
-	         description: "Tier description.",
-	         published: true,
-	         benefits: [
-	         	//array of benefit objects for this tier.
-	         ]
-	         subscribers: 0
-	      },
-	      //...
-	   ]
-	}
+```json
+{
+   event: "tier-modified",
+   id: "channel identifier",
+   data: [
+      {
+         id: "12334",
+         title: "Tier Title",
+         level: "1",
+         cost: "3.99",
+         description: "Tier description.",
+         published: true,
+         benefits: [
+         	//array of benefit objects for this tier.
+         ]
+         subscribers: 0
+      },
+      //...
+   ]
+}
+```
 
 
 ## On-Demand Events
@@ -598,26 +643,30 @@ On-demand events are the correct approach when you need to query the API directl
 
 All on-demand events require the following structure using Socket.IO:
 
-    socket.emit('event-name', {
-    	key: 'your developer key',
-    	data: <event specific JSON data>
-    })
+```javascript
+socket.emit('event-name', {
+	key: 'your developer key',
+	data: <event specific JSON data>
+});
+```
 
 
 ### channels-listen
 
 This event is used to request channels for which your application wants data. This event is the primary means of channel authorization, and is documented in detail in [Channel Authorization](#the-singularity-api-authorization-and-authentication-channel-authorization). It is used as follows:
 
-	socket.emit('channels-listen', {
-		key: 'your developer key',
-		data: [
-	        {   
-	            identifier: 'channel-identifier',
-	            key: 'channel-unique-key'
-	        },
-	        //...
-    	]; 
-	});
+```javascript
+socket.emit('channels-listen', {
+	key: 'your developer key',
+	data: [
+        {   
+            identifier: 'channel-identifier',
+            key: 'channel-unique-key'
+        },
+        //...
+	]; 
+});
+```
 
 ```identifier``` and ```key``` are provided to your application by users.
 
@@ -627,39 +676,42 @@ This event emits ```app-channels-listened``` back to your application. See the [
 
 This event is used to stop listening to data for a particular channel. It is used as follows:
 
-	socket.emit('channels-unlisten', {
-		key: 'your developer key',
-		data: [
-	        {   
-	            identifier: 'channel-identifier',
-	            key: 'channel-unique-key'
-	        },
-	        //...
-	    ];
-	});
-
+```javascript
+socket.emit('channels-unlisten', {
+	key: 'your developer key',
+	data: [
+        {   
+            identifier: 'channel-identifier',
+            key: 'channel-unique-key'
+        },
+        //...
+    ];
+});
+```
 
 ### channels-subscribers
 
 This event is used to return the current subscribers got a channel. It is used as follows:
 
-	socket.emit('channels-subscribers', {
-		key: 'your developer key',
-		data: [
-	        {   
-	            identifier: 'channel-identifier',
-	            key: 'channel-unique-key'
-	            params: {
-	                array: [<gamewisp-identifiers>],
-	                status: 'all', 
-	                sort: 'newest', 
-	                benefits: true, 
-	                tier: true, 
-	            }
-	        },
-	        //...
-	    ];
-	});
+```javascript
+socket.emit('channels-subscribers', {
+	key: 'your developer key',
+	data: [
+        {   
+            identifier: 'channel-identifier',
+            key: 'channel-unique-key'
+            params: {
+                array: [<gamewisp-identifiers>],
+                status: 'all', 
+                sort: 'newest', 
+                benefits: true, 
+                tier: true, 
+            }
+        },
+        //...
+    ];
+});
+```
 
 
 ```params```  is a JSON object of optional parameters that can be used to request particular subscriber data for the specified channel(s). Each element of ```params``` is described as follows:
@@ -679,85 +731,87 @@ This event is used to return the current subscribers got a channel. It is used a
 This event emits ```app-channels-subscribers``` back to your application upon completion. The returned JSON object
  has the following structure:
 
-    {
-	   result: {
-	      status: 1,
-	      message: "Channels Subscribers."
-	   },
-	   data: [
-	      {
-	         id: "channel-identifier",
-	         status: "authenticated",
-	         subscribers: [
-	            {
-	               benefits: [
-	                  {
-	                     benefit: {
-	                        id: "3",
-	                        delivery: "delivery-messaging",
-	                        title: "Subscriber Messaging",
-	                        description: "Receive Subscriber-only messages from me.",
-	                        channel_data: null,
-	                        type: "unknown-type",
-	                        month_delay: null,
-	                        recurring: false,
-	                        recurring_input: false,
-	                        receieve_immediately: false,
-	                        removed_at: null,
-	                        subscriber_limit: null,
-	                        tier_bonus: false,
-	                        quantity: 1,
-	                        multiplier: 1
-	                     },
-	                     fulfillment: {
-	                        id: "49917",
-	                        benefit_id: "3",
-	                        tier_id: "856",
-	                        channel_fulfillment_response: null,
-	                        fulfilled_at: "2015-12-24 03:55:17",
-	                        previously_fulfilled_at: null,
-	                        disabled_at: null,
-	                        user_input_provided_at: null,
-	                        recurring: true,
-	                        granted_at: {
-	                           date: "2015-12-24 03:55:17.000000",
-	                           timezone_type: 3,
-	                           timezone: "UTC"
-	                        },
-	                        channel_cancelled_at: null,
-	                        status: "active",
-	                        user_input: null
-	                     }
-	                  },
-	                  //...
-	               ],
-	               ids: {
-	                  gamewisp: "12323",
-	                  twitch: "455552422"
-	               },
-	               username: {
-	                  gamewisp: "gamewisp-user-name",
-	                  twitch: "twitch-user-name"
-	               },
-	               status: "active",
-	               amount: "4.99",
-	               subscribed_at: "2015-12-24 00:00:00",
-	               end_of_access: "2016-01-24 23:59:00",
-	               tier: {
-	                  id: "123",
-	                  title: "Tier Title",
-	                  level: "1",
-	                  cost: "4.99",
-	                  description: "Tier description",
-	                  published: true
-	               }
-	            },
-	            //...
-	         ]
-	      }
-	   ],
-	   dev_key: "your-developer-key"
-	}
+```json
+{
+   result: {
+      status: 1,
+      message: "Channels Subscribers."
+   },
+   data: [
+      {
+         id: "channel-identifier",
+         status: "authenticated",
+         subscribers: [
+            {
+               benefits: [
+                  {
+                     benefit: {
+                        id: "3",
+                        delivery: "delivery-messaging",
+                        title: "Subscriber Messaging",
+                        description: "Receive Subscriber-only messages from me.",
+                        channel_data: null,
+                        type: "unknown-type",
+                        month_delay: null,
+                        recurring: false,
+                        recurring_input: false,
+                        receieve_immediately: false,
+                        removed_at: null,
+                        subscriber_limit: null,
+                        tier_bonus: false,
+                        quantity: 1,
+                        multiplier: 1
+                     },
+                     fulfillment: {
+                        id: "49917",
+                        benefit_id: "3",
+                        tier_id: "856",
+                        channel_fulfillment_response: null,
+                        fulfilled_at: "2015-12-24 03:55:17",
+                        previously_fulfilled_at: null,
+                        disabled_at: null,
+                        user_input_provided_at: null,
+                        recurring: true,
+                        granted_at: {
+                           date: "2015-12-24 03:55:17.000000",
+                           timezone_type: 3,
+                           timezone: "UTC"
+                        },
+                        channel_cancelled_at: null,
+                        status: "active",
+                        user_input: null
+                     }
+                  },
+                  //...
+               ],
+               ids: {
+                  gamewisp: "12323",
+                  twitch: "455552422"
+               },
+               username: {
+                  gamewisp: "gamewisp-user-name",
+                  twitch: "twitch-user-name"
+               },
+               status: "active",
+               amount: "4.99",
+               subscribed_at: "2015-12-24 00:00:00",
+               end_of_access: "2016-01-24 23:59:00",
+               tier: {
+                  id: "123",
+                  title: "Tier Title",
+                  level: "1",
+                  cost: "4.99",
+                  description: "Tier description",
+                  published: true
+               }
+            },
+            //...
+         ]
+      }
+   ],
+   dev_key: "your-developer-key"
+}
+```
 
 The response object contains subscriber information (described in detail in the **Real Time Events: subscriber-new** event documentation earlier in this README), benefit-fulfillment pairs for the subscriber (see **Real Time Events: subscriber-benefits-change**), and the subscriber's tier (see **Real Time Events: subscriber-status-change**). Note that you will only receive the full object for a subscriber if both the ```benefit``` and ```tier``` parameters of ```channels-subscribers``` are true. 
 
@@ -767,22 +821,23 @@ Please note, that depending on how you use this event, the resulting response ob
 
 This event is used to return the tiers for a channel. It is used as follows:
 
-    socket.emit('channels-subscribers', {
-		key: 'your developer key',
-		data: [
-	        {   
-	            identifier: 'channel-identifer',
-	            key: 'channel-unique-key',
-	            params: {
-	                subscriberInfo: true, 
-	                subscriberCount: true, 
-	                sort: 'oldest'
-	    
-	            }
-	        }
-	    ];
-	});
-
+```javascript
+socket.emit('channels-subscribers', {
+	key: 'your developer key',
+	data: [
+        {   
+            identifier: 'channel-identifer',
+            key: 'channel-unique-key',
+            params: {
+                subscriberInfo: true, 
+                subscriberCount: true, 
+                sort: 'oldest'
+    
+            }
+        }
+    ];
+});
+```
 
 ```params```  is a JSON object of optional parameters that can be used to request particular subscriber data for the specified channel(s) for each tier. Each element of ```params``` is described as follows:
 
@@ -794,69 +849,71 @@ This event is used to return the tiers for a channel. It is used as follows:
 
 This event emits ```app-channels-tiers``` back to your application upon completion. The returned JSON object has the following structure:
 
-	{
-	   result: {
-	      status: 1,
-	      message: "Channels Tiers."
-	   },
-	   data: [
-	      {
-	         id: "channel-identifier",
-	         status: "authenticated",
-	         tiers: [
-	            {
-	               id: "123",
-	               title: "Tier Title",
-	               level: "1",
-	               cost: "4.99",
-	               description: "Tier description",
-	               published: true,
-	               subscriber_count: "12",
-	               subscribers: [
-	                  {
-	                     ids: {
-	                        gamewisp: "12354",
-	                        twitch: null
-	                     },
-	                     username: {
-	                        gamewisp: "gamewisp-user-name",
-	                        twitch: null
-	                     },
-	                     status: "active",
-	                     amount: "4.99",
-	                     subscribed_at: "2015-05-21 00:00:00",
-	                     end_of_access: "2016-01-21 00:00:00",
-	                     tier_id: "123"
-	                  },
-	                 //...
-	               ],
-	               benefits: [
-	                  {
-	                     id: "3",
-	                     delivery: "delivery-messaging",
-	                     title: "Subscriber Messaging",
-	                     description: "Receive Subscriber-only messages from me.",
-	                     channel_data: null,
-	                     type: "unknown-type",
-	                     month_delay: null,
-	                     recurring: false,
-	                     recurring_input: false,
-	                     receieve_immediately: false,
-	                     removed_at: null,
-	                     subscriber_limit: null,
-	                     tier_bonus: false,
-	                     quantity: 1,
-	                     multiplier: 1
-	                  },
-	                  //...
-	               ]
-	            },
-	            //...
-	         ]
-	      }
-	   ],
-	   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
-	}
+```json
+{
+   result: {
+      status: 1,
+      message: "Channels Tiers."
+   },
+   data: [
+      {
+         id: "channel-identifier",
+         status: "authenticated",
+         tiers: [
+            {
+               id: "123",
+               title: "Tier Title",
+               level: "1",
+               cost: "4.99",
+               description: "Tier description",
+               published: true,
+               subscriber_count: "12",
+               subscribers: [
+                  {
+                     ids: {
+                        gamewisp: "12354",
+                        twitch: null
+                     },
+                     username: {
+                        gamewisp: "gamewisp-user-name",
+                        twitch: null
+                     },
+                     status: "active",
+                     amount: "4.99",
+                     subscribed_at: "2015-05-21 00:00:00",
+                     end_of_access: "2016-01-21 00:00:00",
+                     tier_id: "123"
+                  },
+                 //...
+               ],
+               benefits: [
+                  {
+                     id: "3",
+                     delivery: "delivery-messaging",
+                     title: "Subscriber Messaging",
+                     description: "Receive Subscriber-only messages from me.",
+                     channel_data: null,
+                     type: "unknown-type",
+                     month_delay: null,
+                     recurring: false,
+                     recurring_input: false,
+                     receieve_immediately: false,
+                     removed_at: null,
+                     subscriber_limit: null,
+                     tier_bonus: false,
+                     quantity: 1,
+                     multiplier: 1
+                  },
+                  //...
+               ]
+            },
+            //...
+         ]
+      }
+   ],
+   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
+}
+```
 
 Note that if subscriberCount and subscriberInfo are false, the 'subscriber_count' and 'subscribers' fields will not be present.
 
