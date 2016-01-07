@@ -216,7 +216,7 @@ usernames: {
       },
 ```
 
-There are currently 12 events an application can choose to listen to for each authorized channel. They are as follows:
+There are currently 10 events an application can choose to listen to for each authorized channel. They are as follows:
 
 ### subscriber-new
 
