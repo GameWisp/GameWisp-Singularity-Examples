@@ -35,8 +35,8 @@ Singularity can be accessed by both client and server side applications. This mi
             
             // Do not expose your secret! 
             var devCredentials = {
-                key: "<channel key>",
-                secret: "<channel secret>"
+                key: "<developer key>",
+                secret: "<developer secret>"
             };
             
             var socket = io("https://singularity.gamewisp.com");
