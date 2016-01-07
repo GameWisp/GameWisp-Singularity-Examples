@@ -21,8 +21,6 @@ If you're a developer who wishes to build something with the Singularity API, em
 
 ## Quick Start
 
-*NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
-
 Singularity can be accessed by both client and server side applications. This minimal example was taken from the [SocketIO-client-app](https://github.com/GameWisp/GameWisp-Singularity-Examples/tree/master/examples/SocketIO-client-app) example. 
 
 ```html    
@@ -121,7 +119,6 @@ The contents of the ```response``` object on a successful authentication is a JS
 
 ### Channel Authorization
 
-*NOTE: The API currently leverages AES encryption for the passing of channel credentials. This functionality may be replaced with a more conventional OAuth-style authorization process before this API enters public release.*
 
 In order to access data for any GameWisp channel, your application must be authorized by that channel. Channel Authorization also currently uses channel identifiers and keys. If you're an application developer, these credentials will be supplied to you by your users. Store and use these credentials with the same care that you would store and use passwords or other sensitive information from your users.
 
