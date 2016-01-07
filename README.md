@@ -155,7 +155,7 @@ The response is a JSON object of the form:
       },
       //...
    ],
-   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
+   dev_key: "your-developer-key"
 }
 ```
 
@@ -175,11 +175,26 @@ Once a channel is authenticated, your application can receive data pertaining to
 {
 	event: "event-name",
 	id: "channel identifier",
+	channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "gamewisp-singualrity-id",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+        }
+    }
 	data: {
 		//data for the particular event.
 	}
 }
 ```
+
+The ```channel``` object contains channel identifying information for GameWisp and any platform the channel may have linked to GameWisp (i.e., Twitch and/or YouTube).
+
 
 The ```data``` object contains information pertaining to the event. This object is unique for every event type, but contains some common elements that are described as follows:
 
@@ -219,6 +234,18 @@ This event fires whenever a channel gains a new subscriber and has the following
  {
    event: "subscriber-new",
    id: "channel identifier ",
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+      }  
+   },
    data: {
       ids: {
          gamewisp: "26356",
@@ -226,7 +253,7 @@ This event fires whenever a channel gains a new subscriber and has the following
       },
       usernames: {
          gamewisp: "user_name",
-         twitch: "user_name_gamewisp"
+         twitch: "user_name_twitch"
       },
       status: "active",
       amount: "3.99",
@@ -294,6 +321,18 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 {
    event: "subscriber-benefits-change",
    id: "channel identifier",
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+        }
+    }
    data: {
       benefits: [
          {
@@ -479,6 +518,18 @@ This event fires whenever the status of a subscriber changes. This change can be
 {
    event: "subscriber-status-change",
    id: "channel identifier",
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+      }  
+   },
    data: {
       ids: {
          gamewisp: "123222",
@@ -562,6 +613,18 @@ The tier published event is fired whenever a channel publishes a subscriber tier
 {
    event: "tier-published",
    id: "channel-id",
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+      }  
+   },
    data: {
       id: "12345",
       title: "Tier Title",
@@ -637,6 +700,18 @@ This event fires whenever a channel modifies their tiers. Due to the complexity 
 {
    event: "tier-modified",
    id: "channel identifier",
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+      }  
+   },
    data: [
       {
          id: "12334",
@@ -759,6 +834,18 @@ This event emits ```app-channels-subscribers``` back to your application upon co
       status: 1,
       message: "Channels Subscribers."
    },
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+      }  
+   },
    data: [
       {
          id: "channel-identifier",
@@ -877,6 +964,18 @@ This event emits ```app-channels-tiers``` back to your application upon completi
       status: 1,
       message: "Channels Tiers."
    },
+   channel: {
+      names: {
+         gamewisp: "GameWisp channel name",
+         twitch: "twitch channel name",
+         youtube: "youtube channel name"
+      },
+      ids: {
+         gamewisp: "channel identifier",
+         twitch: "12312312q",
+         youtube: "UCiqp4J8asdkssssssssdfae"
+      }  
+   },
    data: [
       {
          id: "channel-identifier",
@@ -933,7 +1032,7 @@ This event emits ```app-channels-tiers``` back to your application upon completi
          ]
       }
    ],
-   dev_key: "9c22873cc11b24a3d447ad135ef89ade"
+   dev_key: "your-developer-key"
 }
 ```
 
