@@ -169,7 +169,7 @@ If you receive a ```listening: true``` for a channel, you will receive data for 
 
 ## Real-Time Events
 
-Once a channel is authenticated, your application can receive data pertaining to that channel by listening for any or all of 12 different events. Pick and choose the events that pertain to your particular use case. Data from real-time events is JSON formatted, and will have the following basic structure:
+Once a channel is authenticated, your application can receive data pertaining to that channel by listening for any or all of 10 different events. Pick and choose the events that pertain to your particular use case. Data from real-time events is JSON formatted, and will have the following basic structure:
 
 ```json
 {
