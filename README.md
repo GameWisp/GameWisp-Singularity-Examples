@@ -783,6 +783,8 @@ socket.emit('channels-unlisten', {
 });
 ```
 
+This event emits ```app-channels-unlistened```, which has an identical structure to the ```app-channels-listened``` event.
+
 ### channels-subscribers
 
 This event is used to return the current subscribers got a channel. It is used as follows:
@@ -822,8 +824,15 @@ socket.emit('channels-subscribers', {
 * **benefits**: boolean. Default is false. If true, returns the benefits for each subscriber.
 * **tier**: boolean. Default is false. If true, returns tier information for the subscriber. 
 
-This event emits ```app-channels-subscribers``` back to your application upon completion. The returned JSON object
- has the following structure:
+This event emits ```app-channels-subscribers``` back to your application upon completion. You can listen for this event using Socket.IO as follows:
+
+```javascript
+  socket.on('app-channels-listen', function(response){
+    // Do something with response.
+  });
+```
+
+The response JSON object has the following structure:
 
 ```json
 {
@@ -919,7 +928,7 @@ This event emits ```app-channels-subscribers``` back to your application upon co
 }
 ```
 
-The response object contains subscriber information (described in detail in the **Real Time Events: subscriber-new** event documentation earlier in this README), benefit-fulfillment pairs for the subscriber (see **Real Time Events: subscriber-benefits-change**), and the subscriber's tier (see **Real Time Events: subscriber-status-change**). Note that you will only receive the full object for a subscriber if both the ```benefit``` and ```tier``` parameters of ```channels-subscribers``` are true. 
+The response object contains subscriber information (described in detail in the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event documentation earlier in this README), benefit-fulfillment pairs for the subscriber (see [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) ), and the subscriber's tier (see [subscriber-status-change](#the-singularity-api-real-time-events-subscriber-status-change) ). Note that you will only receive the full object for a subscriber if both the ```benefit``` and ```tier``` parameters of ```channels-subscribers``` are true. 
 
 Please note, that depending on how you use this event, the resulting response object can be **very** large. It is not recommended to grab all the benefit and tier information for every subscriber simultaneously. It is generally advisable to use this event to get a full list of subscribers for a channel, and then check the benefits of individual subscribers through subsequent calls. 
 
@@ -953,7 +962,16 @@ socket.emit('channels-subscribers', {
  - 'newest': Default. Sort from newest to subscriber to oldest.
  - 'oldest': Sort from oldest subscriber to newest. 
 
-This event emits ```app-channels-tiers``` back to your application upon completion. The returned JSON object has the following structure:
+This event emits ```app-channels-tiers``` back to your application upon completion. If using Socket.IO, you would listen for the event as follows:
+
+```javascript
+  socket.on('app-channels-tiers', function(response){
+    // Do something with response.
+  });
+```
+
+
+The response JSON object has the following structure:
 
 ```json
 {
