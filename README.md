@@ -120,6 +120,11 @@ In order to access data for any GameWisp channel, your application must be autho
 3. The user will either approve access to your app or decline. In either case, they'll be redirected to the **redirect_uri** you specify with an authorization code (in the case of approval) or an error (in the case of denying access). 
 4. If the user approved access, take the **code** parameter and use the /api/v1/oauth/token endpoint to receive an **access_ token** and a **refresh_token**.
 
+
+#### Scopes
+Currently only one scope exists for the Singularity API, ```read_only```. This scope allows a client access to a GameWisp channel's subscriber data, benefit information, tier information, and some basic information about the channel (e.g., the channel's name, GameWisp ID, and when applicable the channel's Twitch and YouTube channel names and id's).
+
+#### Token Request Examples
 An example of how to perform these operations using NodeJS with Express and the simple-oauth2 package is as follows:
 
 ```javascript
