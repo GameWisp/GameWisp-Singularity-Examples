@@ -17,7 +17,7 @@ Fully functional [examples](https://github.com/GameWisp/GameWisp-Singularity-Exa
 
 ## Obtaining Credentials
 
-If you're a developer who wishes to build something with the Singularity API, email us at **help [at] gamewisp [dot] com** and we'll get you a set of developer credentials. Requesting credentials will only be necessary while the API is in closed beta. 
+Clients are authenticated using an OAuth2 client ID and client secret. To generate these credentials, you must visit [https://gamewisp.com](https://gamewisp.com), create a GameWisp Channel, and visit the Integrations page found in the Configuration menu on your channel dashboard.
 
 ## Quick Start
 
