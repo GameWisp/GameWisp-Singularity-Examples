@@ -33,8 +33,8 @@ Singularity can be accessed by both client and server side applications. This mi
             
             // Do not expose your secret! 
             var devCredentials = {
-                key: "<developer key>",
-                secret: "<developer secret>"
+                key: "<OAuth Client ID>",
+                secret: "<OAuth Client Secret>"
             };
             
             var socket = io("https://singularity.gamewisp.com");
@@ -49,20 +49,13 @@ Singularity can be accessed by both client and server side applications. This mi
                 );
             
                 socket.on("authenticated", function(data) {
-                    var channels = [
-                        {   
-                            identifier: "<channel key>",
-                            key: "<channel secret>"
-                        }
-                    ];
-               
-                    // Emit "channels-listen" event to authorize access to channels.
-                    socket.emit("channels-listen", {
-                        key: devCredentials.key,
-                        data: channels
+                    
+                    // Emit "channel-connect" event to authorize access to channels.
+                    socket.emit("channel-connect", {
+                       access_token: "<Channel OAuth Token>"
                     });
 
-                    socket.on("app-channels-listened", function(response){
+                    socket.on("app-channel-connected", function(response){
                         //...                    
                     });
 
@@ -77,22 +70,22 @@ Singularity can be accessed by both client and server side applications. This mi
     </body>
 </html>
 ```
-
+Note that in order to connect to Singularity you must generate OAuth client credentials for your application. You must also have an OAuth token for the channel(s) you wish to receive data about.
 
 ## Authorization and Authentication
 
 
-### Developer Authentication
+### Client Authentication
 
-Developers are currently authenticated using a key and secret. While Singularity is in beta, these credentials will be generated upon request by GameWisp. If you're interested in using the API, please send an email to help [at] gamewisp [dot] com and we will provide you with a credential pair.
+Clients are authenticated using an OAuth2 client ID and client secret. To generate these credentials, you must visit [https://gamewisp.com](https://gamewisp.com), create a GameWisp Channel, and visit the Integrations page found in the Configuration menu on your channel dashboard.
 
-Developer authentication is handled programmatically as follows:
+Once you have a generated a client ID and secret, authentication is handled programmatically as follows:
 
 ```javascript
 socket.emit('authentication', 
     {
-        key: "your developer key", 
-        secret: "your developer secret",
+        key: "your client ID", 
+        secret: "your client secret",
     }
 );
 ```
@@ -112,7 +105,7 @@ The contents of the ```response``` object on a successful authentication is a JS
 {
     result: {
       status: 1,
-      message: "Developer Application Authenticated."
+      message: "Client authentication successful."
     },
 }
 ```
@@ -120,13 +113,168 @@ The contents of the ```response``` object on a successful authentication is a JS
 ### Channel Authorization
 
 
-In order to access data for any GameWisp channel, your application must be authorized by that channel. Channel Authorization also currently uses channel identifiers and keys. If you're an application developer, these credentials will be supplied to you by your users. Store and use these credentials with the same care that you would store and use passwords or other sensitive information from your users.
+In order to access data for any GameWisp channel, your application must be authorized by that channel. Channel authorization uses OAuth2, so you will need to provide some method for a GameWisp channel to authenticate using OAuth2 within your application. Currently the API only supports the OAuth2 AuthCode style grant. The authorization flow is as follows:
 
-### Successful Authorization
-Upon verifying the channels' authorization credentials, Singularity will emit the [app-channels-listened](#the-singularity-api-authorization-and-authentication-successful-authorization) event to your application, which you can listen for as follows:
+1. Build a url to the authorize endpoint and put it in a link on a page on your site. 
+2. Once the user clicks on that link, they'll be directed to the /api/v1/oauth/authorize endpoint on Gamewisp.
+3. The user will either approve access to your app or decline. In either case, they'll be redirected to the **redirect_uri** you specify with an authorization code (in the case of approval) or an error (in the case of denying access). 
+4. If the user approved access, take the **code** parameter and use the /api/v1/oauth/token endpoint to receive an **access_ token** and a **refresh_token**.
+
+An example of how to perform these operations using NodeJS with Express and the simple-oauth2 package is as follows:
 
 ```javascript
- socketClient.on('app-channels-listened', function(response){
+
+var app = require('express')();
+
+
+var oAuthInfo = {
+  site: 'https://gamewisp.com',
+  clientID: 'your client ID',
+  clientSecret: 'your client secret',
+  tokenPath: '/api/v1/oauth/token',
+  authorizationPath: '/api/v1/oauth/authorize',
+};  
+
+var oauth2 = require('simple-oauth2')(oAuthInfo);
+
+// Authorization uri definition 
+var authorization_uri = oauth2.authCode.authorizeURL({
+  redirect_uri: 'your-redirect-uri',
+  scope: 'read_only',
+  state: 'base64 encoded state data, passed back to you'
+});
+
+//redirects to the gamewisp authorize page.
+app.get('/auth', function(req, res){
+  res.redirect(authorization_uri);
+});
+
+app.get('your-redirect-uri', function(req, res){
+var token = oauth2.authCode.getToken({
+    code: code,
+    redirect_uri: 'your-redirect-uri'
+  }).then(function saveToken(result){
+    token = oauth2.accessToken.create(result);
+    //token structure is as follows:
+   /* token:
+    { 
+      result: { status: 1, message: 'Token issued' },
+      data:
+      { 
+        access_token: 'the-access-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+        refresh_token: 'the-refresh-token' 
+      },
+      expires_at: token-expiry-time (UTC) 
+    },*/
+
+    accessToken = token.token.data.access_token;
+    //store and use the token...
+    
+  }).catch( function logError(error){
+    //your error catching here.
+});
+
+
+```
+
+Of course, you can accomplish authentication by nearly any means that sends data to the appropriate endpoint. Here's an example using Guzzle in PHP:
+
+```php
+
+ // assume $code is obtained via redirect from the user visiting a url of the following structure:
+ // https://gamewisp.com/api/v1/oauth/authorize?client_id=CLIENT_ID_HERE&redirect_uri=REDIRECT_URI_HERE&response_type=code&scope=read_only
+
+ //if using Guzzle 6+ change "body" to "form_params"
+ $response = $guzzleClient->post('https://gamewisp/api/v1/oauth/token', [
+        'form_params' => [
+          'grant_type'    => 'authorization_code',
+          'client_id'     => 'your client ID',
+          'client_secret' => 'your client secret',
+          'redirect_uri'  => 'your redirect uri',
+          'code'          => $code
+        ]
+      ]);
+
+      $result = json_decode($response->getBody());
+
+```
+
+
+### Access Token Expiry
+
+Singularity uses refresh tokens to renew expired OAuth2 access tokens. If a token expires, you simply use the /api/v1/oauth/token endpoint with the **refresh_token** grant type as follows:
+
+
+``` javascript
+
+var oAuthInfo = {
+  site: 'https://gamewisp.com',
+  clientID: 'your client ID',
+  clientSecret: 'your client secret',
+  tokenPath: '/api/v1/oauth/token',
+  authorizationPath: '/api/v1/oauth/authorize',
+};
+
+var oauth2 = require('simple-oauth2')(oAuthInfo);
+
+// Sample of a JSON access token you obtained through previous steps
+var token = {
+  'access_token': 'access_token',
+  'refresh_token': 'refresh_token',
+  'expires_in': '3600'
+};
+
+var token = oauth2.accessToken.create(token);
+
+if (token.expired()) {
+  token.refresh(function(error, result) {
+    token = result;
+  });
+}
+
+```
+Again, this is achieved in PHP using the Guzzle library as follows:
+
+``` php
+
+// if using Guzzle 6+ change "body" to "form_params"
+$response = $guzzleClient->post('https://gamewisp.com/api/v1/oauth/token', [
+    'body' => [
+      'grant_type'    => 'refresh_token',
+      'client_id'     => 'your client ID',
+      'client_secret' => 'your client secret',
+      'redirect_uri'  => 'your redirect uri',
+      'refresh_token' => 'the refresh token'
+    ]
+  ]);
+
+  $result = $response->json();
+
+```
+
+### Connecting to a GameWisp Channel with Singularity
+
+Once you have an OAuth2 token for a GameWisp channel, you can connect to that channel through Singularity like so:
+
+``` javascript
+
+socket.emit('channel-connect', {
+    access_token: 'channel oauth2 access token'
+});
+
+
+```
+
+If the token has expired, you will receive a message indicating as such. If that's the case, you will need to refresh the token. 
+
+
+### Successful Authorization
+Upon verifying the channel's access token, Singularity will emit the [app-channel-connected](#the-singularity-api-authorization-and-authentication-successful-authorization) event to your application, which you can listen for as follows:
+
+```javascript
+ socketClient.on('app-channel-connected', function(response){
       //Do something with the response                           
   });
 ```
@@ -135,34 +283,40 @@ The response is a JSON object of the form:
 
 ```json
 {
-   result: {
-      status: 1,
-      message: "Channels authenticated."
-   },
-   data: [
-      {
-         id: "channel identifier 1",
-         status: "authenticated",
-         listening: true
-      },
-      {
-         id: "channel identifier 2",
-         status: "invalid",
-         listening: false
-      },
-      //...
-   ],
-   dev_key: "your-developer-key"
+  result: {
+    status: 1,
+    message: "Channel authenticated."
+  },
+  data: {
+    channel_id: "channel identifier",
+    status: 'authenticated',
+    listening: true
+  },
+  channel:{
+    names:{
+      gamewisp: 'gamewisp channel name',
+      twitch: 'twitch channel name',
+      youtube: 'youtube channel name'
+    },
+    ids:{
+      gamewisp: 'gamewisp channel id',
+      twitch: 'twitch channel id',
+      youtube: 'youtube channel id'
+    }
+  }
 }
 ```
 
-```result``` contains the overall status of the call. A status of 1 indicates success, 0 indicates failure.  ```data``` contains an array of objects, one per channel identifier-key pair in [channels-listen](#the-singularity-api-on-demand-events-channels-listen). The contents of this object are as follows:
+```result``` contains the overall status of the call. A status of 1 indicates success, 0 indicates failure.  ```data``` contains the following:
 
 * **id**: string. The channel's identifying key.
 * **status**: string. The status of the authorization attempt. "authenticated" for a successful authorization, "invalid" if there is a problem with the key-identifier pair you passed in for that channel in [channels-listen](#the-singularity-api-on-demand-events-channels-listen).
 * **listening**: boolean. Indicates that you will receive real time data for the channel as it occurs. 
 
-If you receive a ```listening: true``` for a channel, you will receive data for that channel from singularity. 
+
+If you receive a ```listening: true``` for a channel, you will receive data for that channel from singularity in real-time as it occurs.
+
+The ```channel``` object identifies the channel's gamewisp name and id as well as twitch and youtube identifying information if available.
 
 ## Real-Time Events
 
@@ -230,7 +384,7 @@ This event fires whenever a channel gains a new subscriber and has the following
 ```json
  {
    event: "subscriber-new",
-   id: "channel identifier ",
+   channel_id: "channel identifier ",
    channel: {
       names: {
          gamewisp: "GameWisp channel name",
@@ -317,7 +471,7 @@ This event fires whenever a subscriber's benefits change. A benefit change can b
 ```json
 {
    event: "subscriber-benefits-change",
-   id: "channel identifier",
+   channel_id: "channel identifier",
    channel: {
       names: {
          gamewisp: "GameWisp channel name",
@@ -514,7 +668,7 @@ This event fires whenever the status of a subscriber changes. This change can be
 ```json
 {
    event: "subscriber-status-change",
-   id: "channel identifier",
+   channel_id: "channel identifier",
    channel: {
       names: {
          gamewisp: "GameWisp channel name",
@@ -609,7 +763,7 @@ The tier published event is fired whenever a channel publishes a subscriber tier
 ```json
 {
    event: "tier-published",
-   id: "channel-id",
+   channel_id: "channel-id",
    channel: {
       names: {
          gamewisp: "GameWisp channel name",
@@ -696,7 +850,7 @@ This event fires whenever a channel modifies their tiers. Due to the complexity 
 ```json
 {
    event: "tier-modified",
-   id: "channel identifier",
+   channel_id: "channel identifier",
    channel: {
       names: {
          gamewisp: "GameWisp channel name",
@@ -732,85 +886,62 @@ This event fires whenever a channel modifies their tiers. Due to the complexity 
 
 On-demand events are simply event listeners on the API that respond to events fired by your application. 
 
-On-demand events are the correct approach when you need to query the API directly for information. For example, if you need to determine whether or not a user in a Twitch chat room is a GameWisp subsciber, you would use the [channels-subscribers](#the-singularity-api-on-demand-events-channels-subscribers) on-demand event. 
+On-demand events are the correct approach when you need to query the API directly for information. For example, if you need to determine whether or not a user in a Twitch chat room is a GameWisp subsciber, you would use the [channel-subscribers](#the-singularity-api-on-demand-events-channel-subscribers) on-demand event. 
 
 
 All on-demand events require the following structure using Socket.IO:
 
 ```javascript
 socket.emit('event-name', {
-	key: 'your developer key',
-	data: <event specific JSON data>
+	access_token: "channel OAuth2 access token"
 });
 ```
 
 
-### channels-listen
+### channel-connect
 
 This event is used to request channels for which your application wants data. This event is the primary means of channel authorization, and is documented in detail in [Channel Authorization](#the-singularity-api-authorization-and-authentication-channel-authorization). It is used as follows:
 
 ```javascript
-socket.emit('channels-listen', {
-	key: 'your developer key',
-	data: [
-        {   
-            identifier: 'channel-identifier',
-            key: 'channel-unique-key'
-        },
-        //...
-	]; 
+socket.emit('channel-connect', {
+	access_token: "channel OAuth2 access token" 
 });
 ```
 
-```identifier``` and ```key``` are provided to your application by users.
 
-This event emits ```app-channels-listened``` back to your application. See the [Successful Authorization](#the-singularity-api-authorization-and-authentication-successful-authorization) section of this README for more discussion about channel authorization.
+This event emits ```app-channel-connected``` back to your application. See the [Successful Authorization](#the-singularity-api-authorization-and-authentication-successful-authorization) section of this README for more discussion about channel authorization.
 
-### channels-unlisten
+### channel-disconnect
 
 This event is used to stop listening to data for a particular channel. It is used as follows:
 
 ```javascript
-socket.emit('channels-unlisten', {
-	key: 'your developer key',
-	data: [
-        {   
-            identifier: 'channel-identifier',
-            key: 'channel-unique-key'
-        },
-        //...
-    ];
+socket.emit('channel-disconnect', {
+	access_token: "channel OAuth2 access token" 
 });
 ```
 
-This event emits ```app-channels-unlistened```, which has an identical structure to the ```app-channels-listened``` event.
+This event emits ```app-channel-disconnected```, which has an identical structure to the ```app-channel-connected``` event.
 
-### channels-subscribers
+### channel-subscribers
 
 This event is used to return the current subscribers got a channel. It is used as follows:
 
 ```javascript
-socket.emit('channels-subscribers', {
-	key: 'your developer key',
-	data: [
-        {   
-            identifier: 'channel-identifier',
-            key: 'channel-unique-key'
-            params: {
-                array: [<gamewisp-identifiers>],
-                status: 'all', 
-                sort: 'newest', 
-                benefits: true, 
-                tier: true, 
-            }
-        },
-        //...
-    ];
+socket.emit('channel-subscribers', {
+	access_token: "channel OAuth2 access token",
+  params: {
+      array: [<gamewisp-identifiers>],
+      status: 'all', 
+      sort: 'newest', 
+      benefits: true, 
+      tier: true, 
+  }
 });
 ```
 
 
-```params```  is a JSON object of optional parameters that can be used to request particular subscriber data for the specified channel(s). Each element of ```params``` is described as follows:
+```params```  is a JSON object of optional parameters that can be used to request particular subscriber data for the specified channel. Each element of ```params``` is described as follows:
 
 * **array**: An array of **GameWisp user ids, twitch usernames, or GameWisp usernames or any combination thereof**. If any of the specified elements belong to a subscriber of the particular channel, that subscriber's information will be returned. Specifying a list of users in this parameter limits all other optional parameters to only the list specified users. The default parameter is an empty array, which returns all of the subscribers for the channel.
 * **status**: string. options include: 
@@ -824,10 +955,10 @@ socket.emit('channels-subscribers', {
 * **benefits**: boolean. Default is false. If true, returns the benefits for each subscriber.
 * **tier**: boolean. Default is false. If true, returns tier information for the subscriber. 
 
-This event emits ```app-channels-subscribers``` back to your application upon completion. You can listen for this event using Socket.IO as follows:
+This event emits ```app-channel-subscribers``` back to your application upon completion. You can listen for this event using Socket.IO as follows:
 
 ```javascript
-  socket.on('app-channels-listen', function(response){
+  socket.on('app-channel-subscribers', function(response){
     // Do something with response.
   });
 ```
@@ -838,7 +969,7 @@ The response JSON object has the following structure:
 {
    result: {
       status: 1,
-      message: "Channels Subscribers."
+      message: "Channel Subscribers."
    },
    channel: {
       names: {
@@ -852,105 +983,97 @@ The response JSON object has the following structure:
          youtube: "UCiqp4J8asdkssssssssdfae"
       }  
    },
-   data: [
+   data: 
       {
-         id: "channel-identifier",
-         status: "authenticated",
-         subscribers: [
-            {
-               benefits: [
-                  {
-                     benefit: {
-                        id: "3",
-                        delivery: "delivery-messaging",
-                        title: "Subscriber Messaging",
-                        description: "Receive Subscriber-only messages from me.",
-                        channel_data: null,
-                        type: "unknown-type",
-                        month_delay: null,
-                        recurring: false,
-                        recurring_input: false,
-                        receieve_immediately: false,
-                        removed_at: null,
-                        subscriber_limit: null,
-                        tier_bonus: false,
-                        quantity: 1,
-                        multiplier: 1
-                     },
-                     fulfillment: {
-                        id: "49917",
-                        benefit_id: "3",
-                        tier_id: "856",
-                        channel_fulfillment_response: null,
-                        fulfilled_at: "2015-12-24 03:55:17",
-                        previously_fulfilled_at: null,
-                        disabled_at: null,
-                        user_input_provided_at: null,
-                        recurring: true,
-                        granted_at: {
-                           date: "2015-12-24 03:55:17.000000",
-                           timezone_type: 3,
-                           timezone: "UTC"
-                        },
-                        channel_cancelled_at: null,
-                        status: "active",
-                        user_input: null
-                     }
-                  },
-                  //...
-               ],
-               ids: {
-                  gamewisp: "12323",
-                  twitch: "455552422"
-               },
-               usernames: {
-                  gamewisp: "gamewisp-user-name",
-                  twitch: "twitch-user-name"
-               },
-               status: "active",
-               amount: "4.99",
-               subscribed_at: "2015-12-24 00:00:00",
-               end_of_access: "2016-01-24 23:59:00",
-               tier: {
-                  id: "123",
-                  title: "Tier Title",
-                  level: "1",
-                  cost: "4.99",
-                  description: "Tier description",
-                  published: true
-               }
-            },
-            //...
-         ]
+       channel_id: "channel-identifier",
+       status: "authenticated",
+       subscribers: [
+          {
+             benefits: [
+                {
+                   benefit: {
+                      id: "3",
+                      delivery: "delivery-messaging",
+                      title: "Subscriber Messaging",
+                      description: "Receive Subscriber-only messages from me.",
+                      channel_data: null,
+                      type: "unknown-type",
+                      month_delay: null,
+                      recurring: false,
+                      recurring_input: false,
+                      receieve_immediately: false,
+                      removed_at: null,
+                      subscriber_limit: null,
+                      tier_bonus: false,
+                      quantity: 1,
+                      multiplier: 1
+                   },
+                   fulfillment: {
+                      id: "49917",
+                      benefit_id: "3",
+                      tier_id: "856",
+                      channel_fulfillment_response: null,
+                      fulfilled_at: "2015-12-24 03:55:17",
+                      previously_fulfilled_at: null,
+                      disabled_at: null,
+                      user_input_provided_at: null,
+                      recurring: true,
+                      granted_at: {
+                         date: "2015-12-24 03:55:17.000000",
+                         timezone_type: 3,
+                         timezone: "UTC"
+                      },
+                      channel_cancelled_at: null,
+                      status: "active",
+                      user_input: null
+                   }
+                },
+                //...
+             ],
+             ids: {
+                gamewisp: "12323",
+                twitch: "455552422"
+             },
+             usernames: {
+                gamewisp: "gamewisp-user-name",
+                twitch: "twitch-user-name"
+             },
+             status: "active",
+             amount: "4.99",
+             subscribed_at: "2015-12-24 00:00:00",
+             end_of_access: "2016-01-24 23:59:00",
+             tier: {
+                id: "123",
+                title: "Tier Title",
+                level: "1",
+                cost: "4.99",
+                description: "Tier description",
+                published: true
+             }
+          },
+          //...
+         
       }
    ],
-   dev_key: "your-developer-key"
 }
 ```
 
-The response object contains subscriber information (described in detail in the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event documentation earlier in this README), benefit-fulfillment pairs for the subscriber (see [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) ), and the subscriber's tier (see [subscriber-status-change](#the-singularity-api-real-time-events-subscriber-status-change) ). Note that you will only receive the full object for a subscriber if both the ```benefit``` and ```tier``` parameters of ```channels-subscribers``` are true. 
+The response object contains subscriber information (described in detail in the [subscriber-new](#the-singularity-api-real-time-events-subscriber-new) event documentation earlier in this README), benefit-fulfillment pairs for the subscriber (see [subscriber-benefits-change](#the-singularity-api-real-time-events-subscriber-benefits-change) ), and the subscriber's tier (see [subscriber-status-change](#the-singularity-api-real-time-events-subscriber-status-change) ). Note that you will only receive the full object for a subscriber if both the ```benefit``` and ```tier``` parameters of ```channel-subscribers``` are true. 
 
 Please note, that depending on how you use this event, the resulting response object can be **very** large. It is not recommended to grab all the benefit and tier information for every subscriber simultaneously. It is generally advisable to use this event to get a full list of subscribers for a channel, and then check the benefits of individual subscribers through subsequent calls. 
 
-### channels-tiers
+### channel-tiers
 
 This event is used to return the tiers for a channel. It is used as follows:
 
 ```javascript
-socket.emit('channels-subscribers', {
-	key: 'your developer key',
-	data: [
-        {   
-            identifier: 'channel-identifer',
-            key: 'channel-unique-key',
-            params: {
-                subscriberInfo: true, 
-                subscriberCount: true, 
-                sort: 'oldest'
-    
-            }
-        }
-    ];
+socket.emit('channel-tiers', {
+  access_token: "channel Oauth2 access token"
+  params: {
+      subscriberInfo: true, 
+      subscriberCount: true, 
+      sort: 'oldest'
+  }
 });
 ```
 
@@ -962,10 +1085,10 @@ socket.emit('channels-subscribers', {
  - 'newest': Default. Sort from newest to subscriber to oldest.
  - 'oldest': Sort from oldest subscriber to newest. 
 
-This event emits ```app-channels-tiers``` back to your application upon completion. If using Socket.IO, you would listen for the event as follows:
+This event emits ```app-channel-tiers``` back to your application upon completion. If using Socket.IO, you would listen for the event as follows:
 
 ```javascript
-  socket.on('app-channels-tiers', function(response){
+  socket.on('app-channel-tiers', function(response){
     // Do something with response.
   });
 ```
@@ -977,7 +1100,7 @@ The response JSON object has the following structure:
 {
    result: {
       status: 1,
-      message: "Channels Tiers."
+      message: "Channel Tiers."
    },
    channel: {
       names: {
@@ -993,7 +1116,7 @@ The response JSON object has the following structure:
    },
    data: [
       {
-         id: "channel-identifier",
+         channel_id: "channel-identifier",
          status: "authenticated",
          tiers: [
             {
