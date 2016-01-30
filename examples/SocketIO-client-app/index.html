@@ -71,12 +71,6 @@
                };
 
 
-            // this is your dev key. It identifies the app.
-            var key = "your-developer-key";
-            
-            // This is your dev secret for this application. You shouldn't expose this.
-            var secret = "your-developer-secret";
-
             var socket = io('https://singularity.gamewisp.com');
                 socket.on('connect', function(){
                 
@@ -154,73 +148,31 @@
                         socket.on('tier-benefit-removed', function(data, callback){
                             prettyPrint($('#messages'), 'tier-benefit-removed', data);
                         });
-                        
+                    
 
-                        // A list of channel ids and keys that we want to get information for. The
-                        // keys and IDs will be supplied by users of application. Substitute this for your own
-                        // channel's ID and key when developing. 
-                        // The submitted payload must always be an array of channelIDs and keys, even if you're only 
-                        // passing in one pair. 
-
-                        // Please don't pass in eleventy million channels at once.
-                        var channels = [
-                            {   //valid
-                                identifier: 'channel-identifier',
-                                key: 'channel-key'
-                            }
-                        ];
-
-
-                        //connect the channels. 
-                        sendSingularityData(channels, 'channels-listen');
-                        
-                        /* singularity will emit 'app-channels-listened' after your channels are authenticated. An array of keys will
-                         be returned. Each key will include a parameter indicating whether or not the attempt to listen to the channel was
-                         successful. Unsuccesful channel-listen attempts are typically due to incorrect channel credentials. 
-                         Example:
-
-                            {
-                                result: {
-                                    status: 1,
-                                    message: "channels authenticated",
-                                },
-                                data:
-                                [
-                                    {
-                                        key: <channelKey1>,
-                                        status: 'authenticated',
-                                        listening: true
-
-                                    },
-                                    {
-                                        key: <channelKey2>,
-                                        status: 'invalid',
-                                        listening: false    
-                                    }
-                                ]
-                            }
-                        
-                        */
-
+                        //connect a channel, it's assumed you have the access token already. 
+                        sendSingularityData({
+                            access_token: 'channel access token'
+                        }, 'channel-connect');
                         
                         // API ON-DEMAND RESPONSES -- All methods designated 'app-*' send data only to your app upon socket.emit requests.
-                        socket.on('app-channels-listened', function(data, callback){
-                            prettyPrint($('#messages'), 'app-channels-listened', data);                            
+                        socket.on('app-channel-connected', function(data, callback){
+                            prettyPrint($('#messages'), 'app-channel-connected', data);                            
                         });
 
                         //channels that you no longer want to listen to.
-                        socket.on('app-channels-unlistened',function(data, callback){
-                            prettyPrint($('#messages'), 'app-channels-unlistened', data);
+                        socket.on('app-channel-disconnected',function(data, callback){
+                            prettyPrint($('#messages'), 'app-channel-disconnected', data);
                         });
 
                         //subscriber data for requested channels.
-                        socket.on('app-channels-subscribers', function(data, callback){
-                            prettyPrint($('#messages'), 'app-channels-subscribers', data);
+                        socket.on('app-channel-subscribers', function(data, callback){
+                            prettyPrint($('#messages'), 'app-channel-subscribers', data);
                         });
 
                         //tier data for requested channels
-                        socket.on('app-channels-tiers', function(data, callback){
-                            prettyPrint($('#messages'), 'app-channels-tiers', data);
+                        socket.on('app-channel-tiers', function(data, callback){
+                            prettyPrint($('#messages'), 'app-channel-tiers', data);
                         });
 
                     });
@@ -229,35 +181,16 @@
                     //Method to authenticate a developer application.
                     socket.emit('authentication', 
                         {
-                            key: key, 
-                            secret: secret,
-                            devMode: true
+                            key: 'your client id', 
+                            secret: 'your client secret',
                         }
                     );
 
                     //helper method to handle connecting and disconnecting. the channels-listen and channels-unlisten calls work identically.
-                    var sendSingularityData = function(channelJson, call){
+                    var sendSingularityData = function(data, call){
                         
-                    
-                        var data_base64 = encryptData(channelJson);
-
-                        socket.emit(call, {
-                            key: key,
-                            data: data_base64,
-                        });
+                        socket.emit(call, data);
                     };
-
-                    //convenience method to encrypt json data and base64 encode it for transmission to singularity. 
-                    var encryptData = function(json){
-                         //base64 encode the data.
-                        var strings = JSON.stringify(json);
-
-                        //encrypt using AES style encryption for secure transmission.
-                        var encrypted = CryptoJS.AES.encrypt(strings, CryptoJS.enc.Hex.parse(secret), { iv: CryptoJS.enc.Hex.parse(key) });  
-                        var data_base64 = encrypted.ciphertext.toString(CryptoJS.enc.Base64); 
-
-                        return data_base64;
-                    }
 
                     //pretty prints json strings with Title. Simplifies human reading of JSON output. Pure Utility, baby.
                     //elem should by a jquery object.
@@ -274,36 +207,33 @@
                     //Terminates listening on the channels given in the array.
                     $('#channelDisconnect').on('click', function(){
 
-                        var channels = [
-                            {   //valid
-                                identifier: 'channel-identifier',
-                                key: 'channel-key'
+                        var channel = [
+                            {   
+                                access_token: 'channel access token'
                             }
                         ];
 
-                        sendSingularityData(channels, 'channels-unlisten');
+                        sendSingularityData(channel, 'channel-disconnect');
                     });
 
                     //Initiates a listen for each of the channels in the channels array.
                     $('#channelConnect').on('click', function(){
-                        var channels = [
-                            {   //valid
-                                identifier: 'channel-identifier',
-                                key: 'channel-key',
+                          var channel = [
+                            {   
+                                access_token: 'channel access token'
                             }
                         ];
 
-                        sendSingularityData(channels, 'channels-listen');
+                        sendSingularityData(channel, 'channel-connect');
                     });
 
                     // Requests subscribers for each channel in the channels array. 
                     // There are currently no limits / paging on this request. I trust you to be responsible.
                     // Don't let me down. 
                     $('#requestSubscribers').on('click', function(){
-                        var channels = [
+                        var channel = 
                             {   //valid
-                                identifier: 'channel-identifier',
-                                key: 'channel-key',
+                                access_token: 'channel access token'
                                 params: {
                                     array: [], //default: []. An empty array or an array of gamewisp user ids, or an array of twitch usernames, or gamewisp usernames. An empty array will return all subscribers for the channel.
                                     status: 'all', // default: all. options: all, active, inactive, twitch.
@@ -312,29 +242,26 @@
                                     tier: true, //default: false, options: true, false.returns the tier for each subscriber
 
                                 }
-                            }
-                        ];
+                            };
 
-                        sendSingularityData(channels, 'channels-subscribers');
+                        sendSingularityData(channel, 'channel-subscribers');
 
                     });
 
                     //Requests Benefits that a channel offers organized by tier.
                     $('#requestChannelTiers').on('click', function(){
-                        var channels = [
+                        var channel = 
                             {   //valid
-                                identifier: 'channel-identifier',
-                                key: 'channel-key',
+                                access_token: 'channel access token'
                                 params: { //optional parameters for this endpoint.
                                     subscriberInfo: true, //returns basic info for each subscriber in each tier.
                                     subscriberCount: true, //returns the subscriber count for each tier.
-                                    sort: 'oldest'
+                                    sort: 'oldest' // default: newest. options: newest, oldest
 
                                 }
-                            }
-                        ];
+                            };
 
-                        sendSingularityData(channels, 'channels-tiers');
+                        sendSingularityData(channels, 'channel-tiers');
                     });
 
 

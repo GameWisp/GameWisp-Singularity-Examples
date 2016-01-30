@@ -10,14 +10,23 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var socketClient = require('socket.io-client')('https://singularity.gamewisp.com');
 var crypto = require('crypto-js');
+var prettyJson = require('prettyjson');
 
+var oAuthInfo = {
+  site: 'https://gamewisp.com',
+  clientID: 'your client id',
+  clientSecret: 'your client secret',
+  tokenPath: '/api/v1/oauth/token',
+  authorizationPath: '/api/v1/oauth/authorize',
+}; 
 
-// this is your dev key. It identifies the app.
-var key = "your-developer-key";
+var oauth2 = require('simple-oauth2')(oAuthInfo);
 
-// this is your dev secret for this application. You shouldn't expose this.
-var secret = "your-developer-secret";
-
+var authorization_uri = oauth2.authCode.authorizeURL({
+  redirect_uri: 'your-redirect-uri',
+  scope: 'read_only',
+  state: 'your encoded state'
+});
 
 server.listen(8000);
 
@@ -26,62 +35,84 @@ app.get('/', function(req, res){
   res.send('<h1>You made it to the example service</h1>');
 });
 
+//redirects to the gamewisp authorization page.
+app.get('/auth', function(req, res){
+  res.redirect(authorization_uri);
+});
+
+app.get('your-redirect-uri', function(req,res){
+  var code = req.query.code;
+
+  var token = oauth2.authCode.getToken({
+    code: code,
+    redirect_uri: 'your-redirect-uri'
+  }).then(function saveToken(result){
+    console.log(prettyJson.render(result));
+    if(result.error == undefined){
+      token = oauth2.accessToken.create(result);
+
+      //token structure is as follows:
+     /* token:
+      { 
+        result: { status: 1, message: 'Token issued' },
+        data:
+        { 
+          access_token: 'the-access-token',
+          token_type: 'Bearer',
+          expires_in: 3600,
+          refresh_token: 'the-refresh-token' 
+        },
+        expires_at: token-expiry-time (UTC) 
+      },*/
+
+      // initialize and connect the socket client here, after you have a token. we're just doing it this way in the example becuase we're 
+      // not storing the token permanently, yet still using the authorization code grant. It's a little funky, but oh well.
+      accessToken = token.token.data.access_token;
+
+      //use the token to connect to this channel's singularity stream.
+      //to connect you only need to send the access token in a JSON object.
+
+      //connect the channel.
+      socketClient.emit('channel-connect', {
+        access_token: accessToken
+      });
+
+    }
+    else{
+      res.send('<h1> There was an error: ' + result.error_description + '</h1>');
+    }
+
+  }).catch( function logError(error){
+    console.log('access token error', error.message);
+  });
+});
+
 var doSomething = function(eventName, data){
   //do something with our event and the data we got back from singularity.
-  console.log('event: ' + eventName + ' data: ' + JSON.stringify(data));
+  //here we just use a node library to pretty print it to the console.
+  console.log('event: ' + eventName);
+  console.log(prettyJson.render(data));
 };
-
-// convenience method to handle sending data to singularity.
-var sendSingularityData = function(channelJson, call){
-    var data_base64 = encryptData(channelJson);
-
-    socketClient.emit(call, {
-        key: key,
-        data: data_base64,
-    });
-};
-
-// convenience method to encrypt json data and base64 encode it for transmission to singularity. 
-var encryptData = function(json){
-     // base64 encode the data.
-    var strings = JSON.stringify(json);
-
-    // encrypt using AES style encryption for secure transmission.
-    var encrypted = crypto.AES.encrypt(strings, crypto.enc.Hex.parse(secret), { iv: crypto.enc.Hex.parse(key) });  
-    var data_base64 = encrypted.ciphertext.toString(crypto.enc.Base64); 
-
-    return data_base64;
-}
 
 socketClient.on('connect', function(){  
   // authenticate your application
   socketClient.emit('authentication', 
       {
-          key: key, 
-          secret: secret
+          key: oAuthInfo.clientID, 
+          secret: oAuthInfo.clientSecret,
       }
   );
 });
 
 socketClient.on('authenticated', function(data) {
-  console.log('developer authentication authenticated.');
-
-  var channels = [
-      {   
-          identifier: 'channel-identifier',
-          key: 'channel-key'
-      },
-  ];
-
-
-  // connect the channels. 
-  sendSingularityData(channels, 'channels-listen');
+  console.log('authenticated client');
+  console.log(prettyJson.render(data));
 });
 
 
 // On-Demand Methods
-socketClient.on('app-channels-listened', function(data, callback){
-    console.log('app-channels-listened: ' + data);                            
+socketClient.on('app-channel-connected', function(data, callback){
+    doSomething('app-channel-connected', JSON.parse(data));                            
 });
 
 // Real Time Events
