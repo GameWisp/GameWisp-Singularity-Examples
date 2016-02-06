@@ -4,10 +4,10 @@ var CryptoJS = require("crypto-js");
 
 // this is your dev key. It identifies the app. It can be exposed
 // without issue.
-var key = "YOUR-GAMEWISP-DEV-KEY";
+var key = "YOUR-CLIENT-KEY";
 
 // This is your dev secret for this application. You shouldn't expose this.
-var secret = "YOUR-GAMEWISP-DEV-SECRET";
+var secret = "YOUR-CLIENT-SECRET";
 
 
 var options = {
@@ -34,22 +34,14 @@ socket.on('connect', function() {
 
     socket.on('authenticated', function(data) {
         
-        // A list of channel ids and keys that we want to get information for. The
-        // keys and IDs will be supplied by users of application. Substitute this for your own
-        // channel's ID and key when developing. 
-        // The submitted payload must always be an array of channelIDs and keys, even if you're only 
-        // passing in one pair. 
-
-        // Please don't pass in eleventy million channels at once.
-        var channels = [
-            {   //valid
-                identifier: 'CHANNEL-IDENTIFIER',
-                key: 'CHANNEL-KEY'
+        //connect a channel you have oauth credentials for.
+        var channel = [
+            {   
+                access_token: 'CHANNEL-OAUTH-TOKEN'
             }
         ];
-
-        //connect the channels. 
-        sendSingularityData(channels, 'channels-listen');
+ 
+        sendSingularityData(channel, 'channel-connect');
 
     });
 
@@ -59,7 +51,6 @@ socket.on('connect', function() {
         {
             key: key, 
             secret: secret,
-            devMode: true
         }
     );
 
@@ -168,62 +159,24 @@ socket.on('tier-benefit-removed', function(data, callback){
 });
 
 
-//WIP endpoints -- currently no events come down here.
-socket.on('channel-launched', function(data, callback){
-    console.log(data);
-});
-
-socket.on('channel-mode-change', function(data, callback){
-    console.log(data);
-});
-
-
-/* singularity will emit 'app-channels-listened' after your channels are authenticated. An array of keys will
- be returned. Each key will include a parameter indicating whether or not the attempt to listen to the channel was
- successful. Unsuccesful channel-listen attempts are typically due to incorrect channel credentials. 
- Example:
-
-    {
-        result: {
-            status: 1,
-            message: "channels authenticated",
-        },
-        data:
-        [
-            {
-                key: <channelKey1>,
-                status: 'authenticated',
-                listening: true
-
-            },
-            {
-                key: <channelKey2>,
-                status: 'invalid',
-                listening: false    
-            }
-        ]
-    }
-
-*/
-
 
 // API ON-DEMAND RESPONSES -- All methods designated 'app-*' send data only to your app upon socket.emit requests.
-socket.on('app-channels-listened', function(data, callback){
+socket.on('app-channel-connected', function(data, callback){
     console.log(data);
 });
 
 //channels that you no longer want to listen to.
-socket.on('app-channels-unlistened',function(data, callback){
+socket.on('app-channel-disconnected',function(data, callback){
     console.log(data);
 });
 
 //subscriber data for requested channels.
-socket.on('app-channels-subscribers', function(data, callback){
+socket.on('app-channel-subscribers', function(data, callback){
     console.log(data);
 });
 
 //tier data for requested channels
-socket.on('app-channels-tiers', function(data, callback){
+socket.on('app-channel-tiers', function(data, callback){
     console.log(data);
 });
 
@@ -233,10 +186,7 @@ socket.on('app-channels-tiers', function(data, callback){
 //helper method to handle connecting and disconnecting. the channels-listen and channels-unlisten calls work identically.
 var sendSingularityData = function(channelJson, call){
     
-    socket.emit(call, {
-        key: key,
-        data: channelJson,
-    });
+    socket.emit(call, channelJson);
 };
 
 
