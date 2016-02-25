@@ -1,0 +1,16 @@
+{
+  "name": "GameWisp-skeleton-service",
+  "main": "app.js",
+  "private": true,
+  "dependencies": {
+    "morgan": "latest",
+    "body-parser": "latest",
+    "method-override": "latest",
+    "socket.io": "latest",
+    "redis": "2.0.0",
+    "crypto": "latest",
+    "restler": "latest",
+    "socketio-auth": "latest",
+    "socket.io-client": "latest"
+  }
+}
