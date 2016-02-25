@@ -19,10 +19,13 @@ To use this file you'll need to update the references to client credentials and 
 
 The application exposes four endpoints, they are:
 
-``` / ``` - root path. Has some instructions
-``` /auth ``` - use this to testing Auth'ing a gamewisp channel
-``` /auth-subscriber ``` - use this to test Auth'ing a subscriber
-``` /your-endpoint ``` - Name this whatever you want and use it as the redirect url for this app.
+* ``` / ``` - root path. Has some instructions
+
+* ``` /auth ``` - use this to testing Auth'ing a gamewisp channel
+
+* ``` /auth-subscriber ``` - use this to test Auth'ing a subscriber
+
+* ``` /your-endpoint ``` - Name this whatever you want and use it as the redirect url for this app.
 
 
 Help and Contact
