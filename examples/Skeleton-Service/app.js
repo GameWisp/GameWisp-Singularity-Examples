@@ -82,10 +82,10 @@ app.get('/your-endpoint', function(req,res){
     console.log(prettyJson.render(result));
     if(result.error == undefined){
       token = oauth2.accessToken.create(result);
-      accessToken = token.token.data.access_token;
-      initSocketApiConnectionForChannel(token.token.data.access_token);
+      accessToken = token.token.access_token;
+      initSocketApiConnectionForChannel(token.token.access_token);
 
-      res.send('<h1>You got a token object from GameWisp. Here is the auth token:' + token.token.data.access_token);
+      res.send('<h1>You got a token object from GameWisp. Here is the auth token:' + token.token.access_token);
     }
     else{
       res.send('<h1> There was an error: ' + result.error_description + '</h1>');
