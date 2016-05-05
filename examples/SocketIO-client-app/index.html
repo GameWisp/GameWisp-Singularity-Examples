@@ -233,7 +233,7 @@
                     $('#requestSubscribers').on('click', function(){
                         var channel = 
                             {   //valid
-                                access_token: 'channel access token'
+                                access_token: 'channel access token',
                                 params: {
                                     array: [], //default: []. An empty array or an array of gamewisp user ids, or an array of twitch usernames, or gamewisp usernames. An empty array will return all subscribers for the channel.
                                     status: 'all', // default: all. options: all, active, inactive, twitch.
@@ -252,7 +252,7 @@
                     $('#requestChannelTiers').on('click', function(){
                         var channel = 
                             {   //valid
-                                access_token: 'channel access token'
+                                access_token: 'channel access token',
                                 params: { //optional parameters for this endpoint.
                                     subscriberInfo: true, //returns basic info for each subscriber in each tier.
                                     subscriberCount: true, //returns the subscriber count for each tier.
