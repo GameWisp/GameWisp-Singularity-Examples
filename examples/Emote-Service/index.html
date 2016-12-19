@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+    <head>
+        <!-- for basic websocket communication -->
+        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+
+        <!-- not required for API. But included because jQuery. -->
+        <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+
+        <style>
+            pre {
+               background-color: ghostwhite;
+               border: 1px solid silver;
+               padding: 10px 20px;
+               margin: 20px; 
+               }
+            .json-key {
+               color: brown;
+               }
+            .json-value {
+               color: navy;
+               }
+            .json-string {
+               color: olive;
+               }
+
+            li {
+                list-style: none;
+            }
+
+        </style>
+        
+        <script>
+            
+            //convenience code for pretty printing json.
+            if (!library){
+               var library = {};
+            }
+
+            library.json = {
+               replacer: function(match, pIndent, pKey, pVal, pEnd) {
+                  var key = '<span class=json-key>';
+                  var val = '<span class=json-value>';
+                  var str = '<span class=json-string>';
+                  var r = pIndent || '';
+                  if (pKey)
+                     r = r + key + pKey.replace(/[": ]/g, '') + '</span>: ';
+                  if (pVal)
+                     r = r + (pVal[0] == '"' ? str : val) + pVal + '</span>';
+                  return r + (pEnd || '');
+                  },
+               prettyPrint: function(obj) {
+                  var jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
+                  return JSON.stringify(obj, null, 3)
+                     .replace(/&/g, '&amp;').replace(/\\"/g, '&quot;')
+                     .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                     .replace(jsonLine, library.json.replacer);
+                  }
+               };
+
+            //setup for dev connection.
+            var socket = io('http://localhost:3000');
+            socket.on('connect', function(){
+                socket.on('connected', function(data, callback){
+                    prettyPrint($('#messages'), 'connected', data);
+                });
+
+                socket.on('room joined', function(data, callback){
+                    $('#channelConnect').prop('disabled: false');
+                    prettyPrint($('#messages'), 'room joined', data);
+                });  
+
+
+                //some button handler init. 
+                //Terminates listening on the channels given in the array.
+                $('#channelDisconnect').on('click', function(){
+                    alert('this does not do anything yet.');
+                });
+
+                //Initiates a listen for each of the channels in the channels array.
+                $('#channelConnect').on('click', function(){
+                    var name = $('#channelName').val();
+                    socket.emit('join room', name);
+                    $('#channelConnect').prop('disabled: true');
+                });   
+            });
+
+
+            //pretty prints json strings with Title. Simplifies human reading of JSON output.
+            //elem should by a jquery object.
+            var prettyPrint = function(elem, title, data){
+                    elem.append($('<li><strong>' + title + '</strong></li>').append($('<pre></pre>').append($('<code></code>').html(library.json.prettyPrint(data)))));
+
+                    //baked in some auto scrolling too.
+                    $(document).scrollTop($(document).height());
+            }
+
+
+            //Front end for testing methods that can be emitted by the user.
+        </script>
+    </head>
+    <body>
+        <p> Controls to interact with api:</p>
+        <input id="channelName" type="text" placeholder="Channel Name..."/>
+        <div>
+            <button id="channelDisconnect">Disconnect</button>
+            <button id="channelConnect">Connect</button>
+        </div>
+        <ul id='messages'></ul>
+    </body>
+</html>
